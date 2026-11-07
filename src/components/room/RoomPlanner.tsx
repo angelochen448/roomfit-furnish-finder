@@ -8,6 +8,8 @@ import { CATALOG, itemProblems, type CatalogEntry, type PlacedItem, type Room } 
 import { RoomScene, type CameraRig } from "./RoomScene";
 import sampleRoom from "@/assets/sample-room.jpg";
 import { ProductLinkImport } from "./ProductLinkImport";
+import { RoomPhotoAnalysis } from "./RoomPhotoAnalysis";
+import { calibrateFloor, occupiedAreas, occupiedBy, findOpenPosition, type RoomAnalysis, type PhotoFrame } from "@/lib/room-photo";
 
 const DEFAULT_RIG: CameraRig = { height: 1.6, distance: 4.2, yaw: 0, pitch: 14, fov: 60 };
 
@@ -20,25 +22,51 @@ export function RoomPlanner() {
   const [showGrid, setShowGrid] = useState(true);
   const [movingGrid, setMovingGrid] = useState(false);
   const [alignment, setAlignment] = useState({ x: 0, y: 0 });
+  const [analysis, setAnalysis] = useState<RoomAnalysis | null>(null);
+  const [placementError, setPlacementError] = useState<string | null>(null);
+  const [frame, setFrame] = useState<PhotoFrame>({ width: 1, height: 1, imageWidth: 1, imageHeight: 1 });
+  const scene = useRef<HTMLElement | null>(null);
   const gridDrag = useRef<{ pointerId: number; x: number; y: number; origin: { x: number; y: number }; width: number; height: number } | null>(null);
 
   useEffect(() => () => {
     if (photo.startsWith("blob:")) URL.revokeObjectURL(photo);
   }, [photo]);
+  useEffect(() => {
+    const element = scene.current; if (!element) return;
+    const observer = new ResizeObserver(([entry]) => { if (entry) setFrame(f => ({ ...f, width: entry.contentRect.width, height: entry.contentRect.height })); });
+    observer.observe(element); return () => observer.disconnect();
+  }, []);
+  const occupied = useMemo(() => occupiedAreas(analysis, rig, alignment, frame), [analysis, rig, alignment, frame]);
+  const alignFloor = (result: RoomAnalysis) => {
+    const suggestion = calibrateFloor(result, room, frame, rig);
+    if (suggestion) { setRig(suggestion.rig); setAlignment(suggestion.alignment); setShowGrid(true); setPlacementError(null); }
+    else setPlacementError("Floor alignment is uncertain. Adjust the grid manually before placing furniture.");
+  };
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
-  const allProblems = useMemo(() => items.map((i) => ({ i, p: itemProblems(i, items, room) })), [items, room]);
+  const allProblems = useMemo(() => items.map((i) => ({ i, p: [...itemProblems(i, items, room), ...(occupiedBy(i, occupied.areas) ? ["Occupied by existing furniture"] : [])] })), [items, room, occupied.areas]);
   const badCount = allProblems.filter((x) => x.p.length).length;
 
   const add = (c: CatalogEntry) => {
+    if (occupied.unresolved) { setPlacementError("An existing item's floor position is unclear. Adjust alignment or remove the incorrect detection before placing."); return; }
+    const position = findOpenPosition(c, room, occupied.areas);
+    if (!position && occupied.areas.length) { setPlacementError("No unoccupied space fits this furniture. Existing furniture areas are blocked."); return; }
+    setPlacementError(null);
     const id = crypto.randomUUID();
-    setItems((s) => [...s, { ...c, id, x: 0, z: 0, rot: 0 }]);
+    setItems((s) => [...s, { ...c, id, x: position?.x ?? 0, z: position?.z ?? 0, rot: 0 }]);
     setSelectedId(id);
   };
-  const patch = (id: string, p: Partial<PlacedItem>) => setItems((s) => s.map((i) => (i.id === id ? { ...i, ...p } : i)));
+  const patch = (id: string, p: Partial<PlacedItem>) => {
+    const current = items.find(i => i.id === id); if (!current) return;
+    const moving = p.x !== undefined || p.z !== undefined || p.rot !== undefined;
+    const obstacle = occupiedBy({ ...current, ...p }, occupied.areas);
+    if (moving && (obstacle || occupied.unresolved)) { setPlacementError(obstacle ? `That spot is occupied by ${obstacle.label}.` : "Existing furniture position unclear; review detections first."); return; }
+    setPlacementError(null); setItems(s => s.map(i => i.id === id ? { ...i, ...p } : i));
+  };
 
   const onFile = (f?: File) => {
     if (!f) return;
+    setAnalysis(null); setPlacementError(null); setMovingGrid(false);
     setPhoto(URL.createObjectURL(f));
   };
 

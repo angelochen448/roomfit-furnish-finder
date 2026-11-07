@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { clampToRoom, itemProblems, footprint, type PlacedItem, type Room } from "@/lib/room";
 import { FurnitureMesh } from "./Furniture";
+import { occupiedBy, type OccupiedArea } from "@/lib/room-photo";
 
 export interface CameraRig {
   height: number; // camera eye height, m
@@ -20,6 +21,7 @@ interface Props {
   showGrid: boolean;
   rig: CameraRig;
   alignment: { x: number; y: number };
+  occupied: OccupiedArea[];
   onSelect: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
 }
@@ -88,10 +90,10 @@ function Item({ item, problems, selected, room, onSelect, onMove }: {
   );
 }
 
-export function RoomScene({ room, items, selectedId, showGrid, rig, alignment, onSelect, onMove }: Props) {
+export function RoomScene({ room, items, selectedId, showGrid, rig, alignment, occupied, onSelect, onMove }: Props) {
   const problems = useMemo(
-    () => Object.fromEntries(items.map((i) => [i.id, itemProblems(i, items, room)])),
-    [items, room],
+    () => Object.fromEntries(items.map((i) => [i.id, [...itemProblems(i, items, room), ...(occupiedBy(i, occupied) ? ["Occupied by existing furniture"] : [])]])),
+    [items, room, occupied],
   );
   const hw = room.width / 2, hd = room.depth / 2;
 
@@ -135,6 +137,7 @@ export function RoomScene({ room, items, selectedId, showGrid, rig, alignment, o
         </>
       )}
 
+      {showGrid && occupied.map(a => <Line key={a.id} points={[[a.x-a.w/2, 0.015, a.z-a.d/2], [a.x+a.w/2, 0.015, a.z-a.d/2], [a.x+a.w/2, 0.015, a.z+a.d/2], [a.x-a.w/2, 0.015, a.z+a.d/2], [a.x-a.w/2, 0.015, a.z-a.d/2]]} color="#e5484d" lineWidth={3} />)}
       {items.map((it) => (
         <Item key={it.id} item={it} problems={problems[it.id] ?? []} selected={it.id === selectedId}
           room={room} onSelect={onSelect} onMove={onMove} />

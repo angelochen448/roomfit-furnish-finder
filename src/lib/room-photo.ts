@@ -44,8 +44,8 @@ export function normalizeRoomAnalysis(input: RoomAnalysis): RoomAnalysis {
   const validFloor = floor && [floor.backLeft, floor.backRight, floor.frontRight, floor.frontLeft].every(validPoint)
     && floor.confidence >= 0.5 && floor.backRight.x > floor.backLeft.x
     && floor.frontRight.x > floor.frontLeft.x && (floor.frontLeft.y + floor.frontRight.y) > (floor.backLeft.y + floor.backRight.y) + 0.1;
-  return { floor: validFloor ? floor : null, furniture: input.furniture.slice(0, 20).filter(o => o.footprint.length >= 3 && o.footprint.length <= 8 && o.footprint.every(validPoint))
-    .map(o => ({ ...o, label: o.label.slice(0, 80) || "Existing furniture", confidence: Math.max(0, Math.min(1, o.confidence)) })), notes: input.notes.slice(0, 800) };
+  return { floor: validFloor ? floor : null, furniture: input.furniture.slice(0, 20)
+    .map(o => ({ ...o, footprint: o.footprint.length >= 3 && o.footprint.length <= 8 && o.footprint.every(validPoint) ? o.footprint : [], label: o.label.slice(0, 80) || "Existing furniture", confidence: Math.max(0, Math.min(1, o.confidence)) })), notes: input.notes.slice(0, 800) };
 }
 
 /** Fit camera perspective to the estimated room-floor quad; no dimensions are inferred. */
@@ -86,6 +86,7 @@ export function occupiedAreas(analysis: RoomAnalysis | null, rig: RoomCamera, al
   const camera = roomCamera(rig, alignment, frame);
   const areas: OccupiedArea[] = []; let unresolved = 0;
   analysis.furniture.forEach((o, i) => {
+    if (o.footprint.length < 3) { unresolved++; return; }
     const points = o.footprint.map(p => imageFloorPoint(p, camera, frame));
     if (points.some(p => !p)) { unresolved++; return; }
     const xs = points.flatMap(p => p ? [p.x] : []), zs = points.flatMap(p => p ? [p.z] : []);
