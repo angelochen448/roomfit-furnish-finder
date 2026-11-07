@@ -17,4 +17,9 @@ describe("IKEA product import", () => {
     expect(ikeaUrlSchema.safeParse(url).success).toBe(true);
     for (const bad of ['https://www.ikea.com.evil.com/us/en/p/item/', 'http://www.ikea.com/us/en/p/item/', 'https://localhost/us/en/p/item/', 'https://www.ikea.com/us/en/']) expect(ikeaUrlSchema.safeParse(bad).success).toBe(false);
   });
+  it("imports the orange IKEA PS chair-bed without substituting seat depth or bed length for overall depth", () => {
+    const chairUrl = 'https://www.ikea.com/us/en/p/ikea-ps-2026-chair-bed-skiftebo-bright-orange-80620379/';
+    const chair = parseIkeaProduct('# IKEA PS 2026Chair bed, Skiftebo bright orange\n- Measurements\n  - Bed length79 7/8 "\n  - Height29 1/2 "\n  - Seat depth25 5/8 "\n  - Seat height16 1/8 "\n  - Width31 1/2 "\n- Packaging\nWidth: 34 "\nLength: 44 "', chairUrl);
+    expect(chair).toMatchObject({ label: "IKEA PS 2026 Chair bed", type: "armchair", w: 0.8001, h: 0.7493, d: 0, color: "#ed702b", missingDimensions: ["depth"] });
+  });
 });
