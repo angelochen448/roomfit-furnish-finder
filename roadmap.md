@@ -1,3 +1,7 @@
+# Draggable grid
+- [ ] Add touch/mouse grid alignment alongside existing sliders, keeping furniture aligned and reset available.
+- [ ] Verify dragging, slider changes, reset and furniture controls on desktop/mobile.
+
 # Optional measurement diagrams
 - [x] Add manual overall dimensions before matching and preserve edits after analysis.
 - [x] Allow photo-only matching; verified real desk import and placement at manually edited 160 × 80 × 79 cm on desktop/mobile; 27 tests passed.
