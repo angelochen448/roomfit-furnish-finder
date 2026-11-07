@@ -15,6 +15,15 @@ const LEG = "#3a2c22";
 export function FurnitureMesh({ item }: { item: PlacedItem }) {
   const { w, d, h, color: c } = item;
   switch (item.type) {
+    case "cabinet": {
+      const leg = Math.min(0.1, h * 0.12);
+      const doors = Math.max(1, Math.round(w / 0.6));
+      return <group>
+        <B p={[0, (h + leg) / 2, 0]} s={[w, h - leg, d - 0.02]} c={c} />
+        {Array.from({ length: doors }, (_, i) => <B key={i} p={[-w / 2 + (i + 0.5) * w / doors, (h + leg) / 2, d / 2 - 0.01]} s={[w / doors - 0.004, h - leg - 0.004, 0.02]} c={c} r={0.8} />)}
+        {[-1, 1].flatMap((x) => [-1, 1].map((z) => <B key={`${x}${z}`} p={[x * (w / 2 - 0.04), leg / 2, z * (d / 2 - 0.04)]} s={[0.04, leg, 0.04]} c={c} />))}
+      </group>;
+    }
     case "sofa":
       return (
         <group>

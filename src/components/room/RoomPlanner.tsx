@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { CATALOG, itemProblems, type CatalogEntry, type PlacedItem, type Room } from "@/lib/room";
 import { RoomScene, type CameraRig } from "./RoomScene";
 import sampleRoom from "@/assets/sample-room.jpg";
+import { ProductLinkImport } from "./ProductLinkImport";
 
 const DEFAULT_RIG: CameraRig = { height: 1.6, distance: 4.2, yaw: 0, pitch: 14, fov: 60 };
 
@@ -137,6 +138,7 @@ export function RoomPlanner() {
         </main>
 
         <aside className="order-2 w-full shrink-0 overflow-y-auto border-t border-border p-5 lg:order-3 lg:w-64 lg:border-l lg:border-t-0">
+          <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
             {CATALOG.map((c) => (
