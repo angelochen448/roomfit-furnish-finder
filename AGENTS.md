@@ -37,4 +37,5 @@ use the editor.
 - Imported furniture uses explicitly labeled approximate procedural geometry rather than claiming manufacturer-exact models; keep extracted dimensions as the placement and fit-check source of truth.
 - Read measurement photos through a server-only vision helper with a browser-safe evidence validator; only explicit overall dimensions may populate placement inputs, so unreadable or seat/bed/package measurements remain missing.
 - Keep photo-derived seating appearance as normalized visual proportions carried with placed items; render rounded seating from those proportions within confirmed dimensions, never use inferred proportions as fit measurements.
-- Normalize sofa mesh bounds in local coordinates after geometry layout to confirmed dimensions and floor origin; this keeps actual rendered extents equal to fit dimensions regardless of appearance or room transforms.
+- Normalize sofa and appearance-driven armchair mesh bounds in local coordinates after geometry layout to confirmed dimensions and floor origin; this keeps actual rendered extents equal to fit dimensions regardless of appearance or room transforms.
+- Keep optional silhouette details backward-compatible with existing appearance records; photo-derived arm widths, cushion counts, back slopes and leg shapes are visual parameters, never measurement evidence.

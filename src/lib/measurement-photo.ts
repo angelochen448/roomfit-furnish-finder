@@ -24,6 +24,12 @@ export const photoResultSchema = z.object({
     legs: z.enum(["hidden", "wood", "metal"]),
     legHeight: z.number(), seatHeight: z.number(), armHeight: z.number(), backDepth: z.number(), softness: z.number(),
     chaise: z.enum(["none", "left", "right"]),
+    armWidth: z.number().optional(),
+    backCushions: z.number().optional(),
+    backSlope: z.number().optional(),
+    seatCushion: z.enum(["bench", "split"]).optional(),
+    legShape: z.enum(["block", "tapered", "splayed", "sled"]).optional(),
+    regularDepth: z.number().optional(),
   }),
 });
 export type PhotoResult = z.infer<typeof photoResultSchema>;
@@ -57,6 +63,10 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
       armHeight: Math.max(0.35, Math.min(0.85, result.appearance.armHeight)),
       backDepth: Math.max(0.08, Math.min(0.35, result.appearance.backDepth)),
       softness: Math.max(0.01, Math.min(0.15, result.appearance.softness)),
+      ...(result.appearance.armWidth !== undefined ? { armWidth: Math.max(0.03, Math.min(0.2, result.appearance.armWidth)) } : {}),
+      ...(result.appearance.backCushions !== undefined ? { backCushions: Math.max(1, Math.min(5, Math.round(result.appearance.backCushions))) } : {}),
+      ...(result.appearance.backSlope !== undefined ? { backSlope: Math.max(0, Math.min(0.2, result.appearance.backSlope)) } : {}),
+      ...(result.appearance.regularDepth !== undefined ? { regularDepth: Math.max(0.35, Math.min(1, result.appearance.regularDepth)) } : {}),
     },
     w: read("width"), d: read("depth"), h: read("height"),
     sourceUrl: "", missingDimensions,

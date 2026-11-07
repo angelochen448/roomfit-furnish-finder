@@ -24,6 +24,12 @@ export interface SeatingAppearance {
   backDepth: number;
   softness: number;
   chaise: "none" | "left" | "right";
+  armWidth?: number;
+  backCushions?: number;
+  backSlope?: number;
+  seatCushion?: "bench" | "split";
+  legShape?: "block" | "tapered" | "splayed" | "sled";
+  regularDepth?: number;
 }
 
 export const CATALOG: CatalogEntry[] = [
