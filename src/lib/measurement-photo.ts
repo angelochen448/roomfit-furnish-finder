@@ -82,7 +82,7 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
     return Math.round(meters * 1_000_000) / 1_000_000;
   };
   const colors = { orange: "#ed702b", white: "#eeeae3", black: "#343432", wood: "#9d896f", green: "#7a8b6f", gray: "#91918c" };
-  const { armWidth, backCushions, backSlope, regularDepth, seatCushion, legShape, cushionHeight, backHeight, legThickness, ...coreAppearance } = result.appearance;
+  const { armWidth, backCushions, backSlope, regularDepth, seatCushion, legShape, cushionHeight, backHeight, legThickness, silhouette, armProfile, upholstery, ...coreAppearance } = result.appearance;
   return {
     label: result.label.trim().slice(0, 100) || "Furniture from photo",
     type: result.type, color: /^#[0-9a-f]{6}$/i.test(result.bodyColor) ? result.bodyColor : colors[result.color],
@@ -94,6 +94,9 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
     } } : {}),
     appearance: {
       ...coreAppearance,
+      ...(silhouette !== undefined ? { silhouette } : {}),
+      ...(armProfile !== undefined ? { armProfile } : {}),
+      ...(upholstery !== undefined ? { upholstery } : {}),
       ...(seatCushion !== undefined ? { seatCushion } : {}),
       ...(legShape !== undefined ? { legShape } : {}),
       seats: Math.max(1, Math.min(5, Math.round(result.appearance.seats))),
