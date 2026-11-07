@@ -41,3 +41,4 @@ use the editor.
 - Keep optional silhouette details backward-compatible with existing appearance records; photo-derived arm widths, cushion counts, back slopes and leg shapes are visual parameters, never measurement evidence.
 - Carry optional seating material/component traits and non-seating structural fractions through the existing catalog/placed-item records; defaults preserve older imports and confirmed dimensions always remain authoritative.
 - Use deterministic local upholstery microtextures and a low-resolution live contact-shadow pass; avoid external asset dependencies and keep shadows responsive to dragging.
+- Render photo-derived chair, stool, table, desk and bed traits through normalized ShapeFurniture geometry inside DimensionedFurniture; this extends category coverage without changing placement or authoritative dimensions.
