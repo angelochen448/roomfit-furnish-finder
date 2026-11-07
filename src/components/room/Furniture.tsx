@@ -105,6 +105,7 @@ function FurnitureParts({ item }: { item: PlacedItem }) {
         </group>
       );
   }
+  return null;
 }
 
 /** Image-driven variants reuse the existing primitive renderer and bounds wrapper. */
