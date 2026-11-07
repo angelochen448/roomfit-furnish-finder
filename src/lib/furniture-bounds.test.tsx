@@ -5,6 +5,8 @@ import * as THREE from "three";
 import { Box3, Group, Mesh, Vector3 } from "three";
 import { FurnitureMesh } from "@/components/room/Furniture";
 import type { PlacedItem, SeatingAppearance } from "./room";
+import { CATALOG } from "./room";
+import { productFromPhoto, type PhotoResult } from "./measurement-photo";
 
 extend({ Group: THREE.Group, Mesh: THREE.Mesh, BoxGeometry: THREE.BoxGeometry, CylinderGeometry: THREE.CylinderGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry, MeshStandardMaterial: THREE.MeshStandardMaterial });
 
@@ -16,6 +18,8 @@ const variants: Array<[string, SeatingAppearance | undefined]> = [
   ["conflicting proportions", { ...appearance, seatHeight: 0.25, legHeight: 0.3, arms: "rolled", chaise: "left" }],
   ["rolled tufted classic", { ...appearance, arms: "rolled", back: "tufted", backCushions: 1, seatCushion: "bench", legShape: "tapered", backSlope: 0.08 }],
   ["slim modern chaise", { ...appearance, arms: "slim", armWidth: 0.05, chaise: "left", regularDepth: 0.55, backCushions: 2, legShape: "sled" }],
+  ["charcoal boxy bench reference", { ...appearance, silhouette: "boxy", armProfile: "rectangular", arms: "wide", back: "single", seats: 2, backCushions: 1, seatCushion: "bench", cushionHeight: 0.1, legs: "metal", legThickness: 0.018, upholstery: "woven" }],
+  ["plush sloped split sofa", { ...appearance, silhouette: "plush", armProfile: "sloped", cushionHeight: 0.2, backHeight: 0.5, legShape: "splayed", upholstery: "velvet" }],
 ];
 
 async function renderSofa(item: PlacedItem) {
@@ -68,6 +72,40 @@ describe.each(variants)("sofa bounds: %s", (_, settings) => {
 
 describe("imported seating silhouette", () => {
   const item: PlacedItem = { id: "test", type: "sofa", label: "Test sofa", x: 0, z: 0, rot: 0, w: 2.4, d: 1.5, h: 0.85, color: "#889988" };
+  it("carries the described charcoal bench traits from photo validation to actual geometry", async () => {
+    const settings = variants[6]?.[1];
+    if (!settings) throw new Error("Missing reference fixture");
+    const result: PhotoResult = { label: "Charcoal sofa", type: "sofa", color: "gray", bodyColor: "#353535", notes: "", appearance: settings,
+      width: { value: 180, unit: "cm", kind: "overall", evidence: "180 cm overall width" },
+      depth: { value: 85, unit: "cm", kind: "overall", evidence: "85 cm overall depth" },
+      height: { value: 80, unit: "cm", kind: "overall", evidence: "80 cm overall height" } };
+    const product = productFromPhoto(result);
+    const { group, cleanup } = await renderSofa({ ...item, ...product });
+    expect(group.getObjectByName("seat1")).toBeUndefined();
+    expect(group.getObjectByName("back1")).toBeUndefined();
+    const arm = group.getObjectByName("arm1"), leg = group.getObjectByName("leg1-0"), seat = group.getObjectByName("seat0");
+    if (!(arm instanceof Mesh) || !(leg instanceof Mesh) || !(seat instanceof Mesh)) throw new Error("Missing reference components");
+    expect(leg.geometry.type).toBe("CylinderGeometry");
+    const legSize = new Box3().setFromObject(leg, true).getSize(new Vector3());
+    expect(legSize.x).toBeLessThan(0.02);
+    const material = seat.material as THREE.MeshStandardMaterial;
+    expect(material.bumpMap).not.toBeNull();
+    expect(material.color.getHexString()).toBe("353535");
+    const bounds = new Box3().setFromObject(group, true).getSize(new Vector3());
+    expect(bounds.x).toBeCloseTo(1.8, 5); expect(bounds.z).toBeCloseTo(0.85, 5); expect(bounds.y).toBeCloseTo(0.8, 5);
+    cleanup();
+  });
+  it("renders a contrasting sloped plush design with separate cushions and velvet material", async () => {
+    const settings = variants[7]?.[1];
+    if (!settings) throw new Error("Missing plush fixture");
+    const { group, cleanup } = await renderSofa({ ...item, appearance: settings });
+    expect(group.getObjectByName("sloped-arm")).toBeDefined();
+    expect(group.getObjectByName("seat2")).toBeDefined();
+    const seat = group.getObjectByName("seat0");
+    if (!(seat instanceof Mesh)) throw new Error("Missing seat");
+    expect((seat.material as THREE.MeshStandardMaterial).roughness).toBe(0.85);
+    cleanup();
+  });
   it("renders rolled arms, six tuft panels, a bench cushion and tapered legs", async () => {
     const settings = variants[4]?.[1];
     if (!settings) throw new Error("Missing classic fixture");
@@ -105,6 +143,25 @@ describe("imported seating silhouette", () => {
     expect(size.z).toBeCloseTo(0.84, 5);
     expect(size.y).toBeCloseTo(0.75, 5);
     expect(box.min.y).toBeCloseTo(0, 5);
+    cleanup();
+  });
+});
+
+describe("existing and appearance-driven furniture categories", () => {
+  it.each(CATALOG)("continues rendering $type", async entry => {
+    const { group, cleanup } = await renderSofa({ ...entry, id: entry.type, x: 0, z: 0, rot: 0 });
+    const bounds = new Box3().setFromObject(group, true);
+    expect(bounds.isEmpty()).toBe(false);
+    expect(bounds.getSize(new Vector3()).length()).toBeGreaterThan(0);
+    cleanup();
+  });
+  it.each(["coffeeTable", "desk", "cabinet", "shelf", "bed"] as const)("bounds structural %s at its confirmed size", async type => {
+    const { group, cleanup } = await renderSofa({ id: type, type, label: type, x: 0, z: 0, rot: 0, w: 1.4, d: 0.7, h: 0.8, color: "#887766", structure: { supports: "pedestal", thickness: 0.04, legThickness: 0.025, panels: 3, openBack: true, material: "wood" } });
+    const bounds = new Box3().setFromObject(group, true), size = bounds.getSize(new Vector3());
+    expect(size.x).toBeCloseTo(1.4, 5); expect(size.z).toBeCloseTo(0.7, 5); expect(size.y).toBeCloseTo(0.8, 5);
+    expect(bounds.min.y).toBeCloseTo(0, 5);
+    if (type === "shelf") expect(group.getObjectByName("rear")).toBeUndefined();
+    if (type === "cabinet") expect(group.getObjectByName("door2")).toBeDefined();
     cleanup();
   });
 });
