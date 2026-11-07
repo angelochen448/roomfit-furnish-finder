@@ -35,3 +35,4 @@ use the editor.
 - Import English IKEA product links through a server function using Firecrawl; parse assembled measurements separately from packaging and require review before placement so product dimensions are never invented.
 - Missing overall measurements must remain blank and block placement until entered; never substitute seat dimensions, unfolded-bed dimensions, or package dimensions for the chair footprint.
 - Imported furniture uses explicitly labeled approximate procedural geometry rather than claiming manufacturer-exact models; keep extracted dimensions as the placement and fit-check source of truth.
+- Read measurement photos through a server-only vision helper with a browser-safe evidence validator; only explicit overall dimensions may populate placement inputs, so unreadable or seat/bed/package measurements remain missing.

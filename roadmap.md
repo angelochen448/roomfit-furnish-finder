@@ -3,3 +3,8 @@
 - [x] Import IKEA product names and assembled dimensions from a pasted link.
 - [x] Confirm dimensions and place an approximate storage/furniture model in the room.
 - [x] Test the supplied BESTÅ link end to end.
+
+# Measurement-photo import
+- [x] Upload measurement photos and extract explicit overall dimensions.
+- [x] Review dimensions and place an approximate furniture model.
+- [x] Verify photo analysis and placement end to end (IKEA chair diagram: 80 × 84 × 75 cm).
