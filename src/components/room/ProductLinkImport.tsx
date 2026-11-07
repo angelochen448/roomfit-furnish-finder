@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ImagePlus, Loader2, Plus } from "lucide-react";
+import { ImagePlus, Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { PhotoUpload, type UploadedPhoto } from "./PhotoUpload";
 
 export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) => void }) {
   const [pending, setPending] = useState(false);
+  const activeRequest = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<ImportedProduct | null>(null);
   const importPhotos = useServerFn(importMeasurementPhotos);
@@ -20,13 +21,15 @@ export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) =>
     <h2 className="eyebrow">Import furniture</h2>
     <form className="space-y-3" onSubmit={async (event) => {
       event.preventDefault(); setPending(true); setError(null); setProduct(null);
-      try { const result = await importPhotos({ data: { images: photos.map((photo) => photo.data), productImages: productPhotos.map((photo) => photo.data), name: "", url: "" } }); setProduct(result.product); setError(result.error); }
-      catch (e) { setError(e instanceof Error ? e.message : "The photos could not be read."); }
-      finally { setPending(false); }
+      const controller = new AbortController(); activeRequest.current = controller;
+      try { const result = await importPhotos({ signal: controller.signal, data: { images: photos.map((photo) => photo.data), productImages: productPhotos.map((photo) => photo.data), name: "", url: "" } }); if (activeRequest.current === controller && !controller.signal.aborted) { setProduct(result.product); setError(result.error); } }
+      catch (e) { if (activeRequest.current === controller && !controller.signal.aborted) setError(e instanceof Error ? e.message : "The photos could not be read."); }
+      finally { if (activeRequest.current === controller) { activeRequest.current = null; setPending(false); } }
     }}>
       <PhotoUpload label="Product photos" photos={productPhotos} disabled={pending} onChange={(next) => { setProductPhotos(next); setProduct(null); }} onError={setError} />
       <PhotoUpload label="Measurement diagrams" photos={photos} disabled={pending} onChange={(next) => { setPhotos(next); setProduct(null); }} onError={setError} />
       <Button type="submit" className="w-full" disabled={pending || photos.length === 0}>{pending ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}{pending ? "Matching furniture…" : "Match furniture"}</Button>
+      {pending && <Button type="button" variant="outline" className="w-full" onClick={() => { activeRequest.current?.abort(); activeRequest.current = null; setPending(false); setError("Matching cancelled."); }}><X className="size-4" />Cancel matching</Button>}
     </form>
     {error && <p role="alert" className="break-words text-xs text-destructive">{error}</p>}
     {product && <div className="space-y-3">
