@@ -148,6 +148,30 @@ describe("imported seating silhouette", () => {
 });
 
 describe("existing and appearance-driven furniture categories", () => {
+  it.each([
+    { type: "table" as const, structure: { topShape: "oval" as const, supports: "pedestal" as const }, part: "shape-top", geometry: "CylinderGeometry" },
+    { type: "table" as const, structure: { topShape: "rectangular" as const, supports: "trestle" as const }, part: "trestle-stretcher", geometry: "BoxGeometry" },
+    { type: "chair" as const, structure: { backStyle: "slatted" as const, seatLevel: 0.5 }, part: "back-slat-0", geometry: "BoxGeometry" },
+    { type: "stool" as const, structure: { seatShape: "round" as const, footrest: true, legStyle: "splayed" as const }, part: "shape-seat", geometry: "CylinderGeometry" },
+    { type: "desk" as const, structure: { drawers: 3 }, part: "desk-drawer-2", geometry: "BoxGeometry" },
+    { type: "bed" as const, structure: { headboard: "upholstered" as const }, part: "headboard-pad-3", geometry: "BoxGeometry" },
+  ])("bounds $type with $part at confirmed dimensions", async ({ type, structure, part, geometry }) => {
+    const { group, cleanup } = await renderSofa({ id: type, type, label: type, x: 0, z: 0, rot: 0, w: 1.3, d: 0.73, h: 0.91, color: "#887766", structure });
+    const target = group.getObjectByName(part);
+    expect(target instanceof Mesh && target.geometry.type).toBe(geometry);
+    const bounds = new Box3().setFromObject(group, true), size = bounds.getSize(new Vector3());
+    expect(size.x).toBeCloseTo(1.3, 5); expect(size.y).toBeCloseTo(0.91, 5); expect(size.z).toBeCloseTo(0.73, 5);
+    expect(bounds.min.y).toBeCloseTo(0, 5);
+    group.traverse(o => {
+      if (!(o instanceof Mesh)) return;
+      const b = new Box3().setFromObject(o, true);
+      expect(b.min.y).toBeGreaterThanOrEqual(-0.00001); expect(b.max.y).toBeLessThanOrEqual(0.91001);
+      expect(b.min.x).toBeGreaterThanOrEqual(-0.65001); expect(b.max.x).toBeLessThanOrEqual(0.65001);
+      expect(b.min.z).toBeGreaterThanOrEqual(-0.36501); expect(b.max.z).toBeLessThanOrEqual(0.36501);
+    });
+    if (type === "stool") { expect(group.getObjectByName("chair-back")).toBeUndefined(); expect(group.getObjectByName("footrest-x-1")).toBeDefined(); }
+    cleanup();
+  });
   it.each(CATALOG)("continues rendering $type", async entry => {
     const { group, cleanup } = await renderSofa({ ...entry, id: entry.type, x: 0, z: 0, rot: 0 });
     const bounds = new Box3().setFromObject(group, true);
