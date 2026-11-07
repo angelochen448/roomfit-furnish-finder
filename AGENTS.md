@@ -33,4 +33,5 @@ use the editor.
 - Keep room geometry and fit rules in the browser-safe room module, with Three.js rendering in the room components; this keeps placement logic testable independently of WebGL.
 - Treat photo alignment as manual camera calibration, not automatic room reconstruction; a single uploaded photo does not supply measured 3D geometry.
 - Import English IKEA product links through a server function using Firecrawl; parse assembled measurements separately from packaging and require review before placement so product dimensions are never invented.
+- Missing overall measurements must remain blank and block placement until entered; never substitute seat dimensions, unfolded-bed dimensions, or package dimensions for the chair footprint.
 - Imported furniture uses explicitly labeled approximate procedural geometry rather than claiming manufacturer-exact models; keep extracted dimensions as the placement and fit-check source of truth.

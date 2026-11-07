@@ -33,10 +33,11 @@ export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) =>
     {product && <div className="space-y-3">
       <div className="text-sm font-medium break-words">{product.label}</div>
       <div className="text-xs text-muted-foreground">IKEA dimensions · approximate shape</div>
+      {product.missingDimensions.length > 0 && <p role="status" className="text-xs text-destructive">Overall {product.missingDimensions.join(" / ")} not listed. Enter the measured overall size before adding. Seat depth and bed length are not chair depth.</p>}
       <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
         {(["w", "d", "h"] as const).map((key, i) => <div key={key} className="space-y-1">
           <Label htmlFor={`product-${key}`} className="text-xs">{["Width", "Depth", "Height"][i]} (cm)</Label>
-          <Input id={`product-${key}`} type="number" min={0.1} max={1500} step={0.01} value={Math.round(product[key] * 10000) / 100} onChange={(e) => setProduct({ ...product, [key]: Number(e.target.value) / 100 })} />
+          <Input id={`product-${key}`} type="number" min={0.1} max={1500} step={0.01} placeholder="Required" value={product[key] > 0 ? Math.round(product[key] * 10000) / 100 : ""} onChange={(e) => setProduct({ ...product, [key]: Number(e.target.value) / 100 })} />
         </div>)}
       </div>
       <a className="text-xs text-primary underline" href={product.sourceUrl} target="_blank" rel="noreferrer">View IKEA product</a>
