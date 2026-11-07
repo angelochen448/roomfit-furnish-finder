@@ -1,3 +1,7 @@
+# Optional measurement diagrams
+- [ ] Add manual overall dimensions before matching and preserve edits after analysis.
+- [ ] Allow photo-only matching and verify placement with manual dimensions.
+
 # Part-based rigid furniture
 - [x] Extract and validate reusable positioned parts from photos, preserving seating and confirmed dimensions.
 - [x] Render endpoint-based supports and surfaces, with comparison preview and honest limitations.
