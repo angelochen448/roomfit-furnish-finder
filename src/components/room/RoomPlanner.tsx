@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { CATALOG, itemProblems, type CatalogEntry, type PlacedItem, type Room } from "@/lib/room";
 import { RoomScene, type CameraRig } from "./RoomScene";
 import sampleRoom from "@/assets/sample-room.jpg";
+import { ProductLinkImport } from "./ProductLinkImport";
 
 const DEFAULT_RIG: CameraRig = { height: 1.6, distance: 4.2, yaw: 0, pitch: 14, fov: 60 };
 
@@ -125,7 +126,7 @@ export function RoomPlanner() {
             <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
-                <div className="font-mono text-xs text-muted-foreground">{selected.w}×{selected.d}×{selected.h} m</div>
+                <div className="font-mono text-xs text-muted-foreground">{[selected.w, selected.d, selected.h].map((v) => v.toFixed(3)).join(" × ")} m</div>
                 {itemProblems(selected, items, room).map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
               </div>
               <input type="color" value={selected.color} onChange={(e) => patch(selected.id, { color: e.target.value })}
@@ -137,6 +138,7 @@ export function RoomPlanner() {
         </main>
 
         <aside className="order-2 w-full shrink-0 overflow-y-auto border-t border-border p-5 lg:order-3 lg:w-64 lg:border-l lg:border-t-0">
+          <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
             {CATALOG.map((c) => (

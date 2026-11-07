@@ -1,6 +1,6 @@
 // Pure room-planning rules: no React, no three.js. Units are meters.
 
-export type FurnitureType = "sofa" | "armchair" | "coffeeTable" | "bed" | "desk" | "lamp" | "rug" | "shelf";
+export type FurnitureType = "sofa" | "armchair" | "coffeeTable" | "bed" | "desk" | "lamp" | "rug" | "shelf" | "cabinet";
 
 export interface CatalogEntry {
   type: FurnitureType;
