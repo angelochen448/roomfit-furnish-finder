@@ -42,3 +42,4 @@ use the editor.
 - Carry optional seating material/component traits and non-seating structural fractions through the existing catalog/placed-item records; defaults preserve older imports and confirmed dimensions always remain authoritative.
 - Use deterministic local upholstery microtextures and a low-resolution live contact-shadow pass; avoid external asset dependencies and keep shadows responsive to dragging.
 - Render photo-derived chair, stool, table, desk and bed traits through normalized ShapeFurniture geometry inside DimensionedFurniture; this extends category coverage without changing placement or authoritative dimensions.
+- Prefer validated photo-described primitive assemblies for imported rigid furniture, using endpoint beams and DimensionedFurniture; retain legacy defaults and seating, and block explicitly unsupported assemblies to avoid misleading substitutes.
