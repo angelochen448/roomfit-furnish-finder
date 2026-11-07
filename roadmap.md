@@ -1,4 +1,9 @@
 # Furniture category approximations
+# Part-based rigid furniture
+- [ ] Extract and validate reusable positioned parts from photos, preserving seating and confirmed dimensions.
+- [ ] Render endpoint-based supports and surfaces, with comparison preview and honest limitations.
+- [ ] Verify the supplied A-frame desk, contrasting assemblies, bounds and room placement.
+
 - [x] Extend photo classification and optional traits for chairs, stools, tables, desks and beds; retain existing sofas and armchairs.
 - [x] Add normalized procedural shapes and catalog entries without changing photo-only inputs or room controls.
 - [x] Test dimensions and contrasting shapes (87 tests); verify actual photo import at 80 × 84 × 75 cm and all six categories placed/rotated on desktop, plus mobile rendering.
