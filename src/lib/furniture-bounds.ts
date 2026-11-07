@@ -7,11 +7,16 @@ export function furnitureGeometryBounds(group: Group): Box3 {
   const bounds = new Box3();
   group.traverse((object) => {
     if (!(object instanceof Mesh)) return;
-    object.geometry.computeBoundingBox();
-    const box = object.geometry.boundingBox;
-    if (!box) return;
+    const positions = object.geometry.getAttribute("position");
+    if (!positions) return;
     const local = new Matrix4().multiplyMatrices(inverse, object.matrixWorld);
-    bounds.union(box.clone().applyMatrix4(local));
+    // Rotated rounded parts do not occupy every corner of their local AABB.
+    // Measure actual vertices so tilted backs and legs still fit exactly.
+    const vertex = new Vector3();
+    for (let i = 0; i < positions.count; i++) {
+      vertex.fromBufferAttribute(positions, i).applyMatrix4(local);
+      bounds.expandByPoint(vertex);
+    }
   });
   return bounds;
 }

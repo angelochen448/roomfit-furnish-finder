@@ -15,7 +15,7 @@ const LEG = "#3a2c22";
 
 /** Procedural furniture built in its own local space, origin at floor center. */
 export function FurnitureMesh({ item }: { item: PlacedItem }) {
-  if (item.type === "sofa") return <DimensionedFurniture w={item.w} d={item.d} h={item.h}><FurnitureParts item={item} /></DimensionedFurniture>;
+  if (item.type === "sofa" || (item.type === "armchair" && item.appearance)) return <DimensionedFurniture w={item.w} d={item.d} h={item.h}><FurnitureParts item={item} /></DimensionedFurniture>;
   return <FurnitureParts item={item} />;
 }
 

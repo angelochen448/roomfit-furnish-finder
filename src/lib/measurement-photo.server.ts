@@ -2,7 +2,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { Output, streamText, NoObjectGeneratedError } from "ai";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "./ai/run-id.server.ts";
-import { photoResultSchema, productFromPhoto } from "./measurement-photo";
+import { photoResultSchema, photoVisionResultSchema, productFromPhoto } from "./measurement-photo";
 import type { ImportedProduct } from "./product-import";
 import { parseIkeaProduct } from "./product-import";
 
@@ -35,15 +35,16 @@ export async function readMeasurementPhotos(data: { images: string[]; productIma
         { type: "text", text: `Read the overall furniture dimensions from the measurement diagrams below. Optional product label: ${data.name || linkedProduct?.label || "not provided"}.` },
         ...data.images.map((image) => ({ type: "image" as const, image: new URL(image) })),
         { type: "text", text: "The following are actual product appearance photos, NOT measurement diagrams. Match their upholstery color as a six-digit hex bodyColor, arm style (none means armless), seat cushion count, back cushion structure, legs and chaise side viewed from the front. For appearance, product photos override black-and-white diagrams. legHeight, seatHeight, armHeight are visual fractions of overall height; backDepth is a fraction of overall depth; softness is corner radius as a fraction of the smallest overall dimension. These are approximate visual proportions only, NEVER overall measurements. For hidden legs use legHeight 0.02. If product photos are absent, use only visible diagram traits. Do not invent arms on armless chairs. Typical seatHeight 0.5. Keep silhouette faithful to visible photos." },
+        { type: "text", text: "Also describe visible silhouette details: armWidth is each arm's width divided by overall width (ignored for armless seating); backCushions counts back cushions independently of seat count; backSlope is backward top offset divided by overall depth (0 upright, at most 0.2); seatCushion is bench for one continuous cushion or split for separate cushions; legShape is block, tapered, outward splayed, or sled for connected metal rails. regularDepth is normal non-chaise section depth divided by overall depth, including backrest; use 1 without a chaise. Chaise left/right is always from a person facing the furniture, not seated on it. Distinguish tufted button/seam backs from plain split backs. Describe only visibly supported traits; omit uncertain optional details. These fields describe appearance only and must NEVER populate measurements." },
         ...data.productImages.map((image) => ({ type: "image" as const, image: new URL(image) })),
       ] }],
-      output: Output.object({ schema: photoResultSchema }),
+      output: Output.object({ schema: photoVisionResultSchema }),
       providerOptions: { openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] } },
     });
     const output = await result.output;
     const runId = run.getRunId();
     if (runId) setResponseHeader("X-Lovable-AIG-Run-ID", runId);
-    const product = productFromPhoto(output);
+    const product = productFromPhoto(photoResultSchema.parse({ ...output, appearance: Object.fromEntries(Object.entries(output.appearance).filter(([, value]) => value !== null)) }));
     if (linkedProduct) {
       for (const key of ["w", "d", "h"] as const) if (!product[key]) product[key] = linkedProduct[key];
       product.label = data.name || linkedProduct.label;

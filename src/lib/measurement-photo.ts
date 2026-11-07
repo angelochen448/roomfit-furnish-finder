@@ -24,9 +24,24 @@ export const photoResultSchema = z.object({
     legs: z.enum(["hidden", "wood", "metal"]),
     legHeight: z.number(), seatHeight: z.number(), armHeight: z.number(), backDepth: z.number(), softness: z.number(),
     chaise: z.enum(["none", "left", "right"]),
+    armWidth: z.number().optional(),
+    backCushions: z.number().optional(),
+    backSlope: z.number().optional(),
+    seatCushion: z.enum(["bench", "split"]).optional(),
+    legShape: z.enum(["block", "tapered", "splayed", "sled"]).optional(),
+    regularDepth: z.number().optional(),
   }),
 });
 export type PhotoResult = z.infer<typeof photoResultSchema>;
+// Structured vision output requires every key; null means an uncertain trait.
+export const photoVisionResultSchema = photoResultSchema.extend({
+  appearance: photoResultSchema.shape.appearance.extend({
+    armWidth: z.number().nullable(), backCushions: z.number().nullable(),
+    backSlope: z.number().nullable(), regularDepth: z.number().nullable(),
+    seatCushion: z.enum(["bench", "split"]).nullable(),
+    legShape: z.enum(["block", "tapered", "splayed", "sled"]).nullable(),
+  }),
+});
 export const photoInputSchema = z.object({
   images: z.array(z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)).min(1).max(4),
   name: z.string().trim().max(100),
@@ -46,17 +61,24 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
     return Math.round(meters * 1_000_000) / 1_000_000;
   };
   const colors = { orange: "#ed702b", white: "#eeeae3", black: "#343432", wood: "#9d896f", green: "#7a8b6f", gray: "#91918c" };
+  const { armWidth, backCushions, backSlope, regularDepth, seatCushion, legShape, ...coreAppearance } = result.appearance;
   return {
     label: result.label.trim().slice(0, 100) || "Furniture from photo",
     type: result.type, color: /^#[0-9a-f]{6}$/i.test(result.bodyColor) ? result.bodyColor : colors[result.color],
     appearance: {
-      ...result.appearance,
+      ...coreAppearance,
+      ...(seatCushion !== undefined ? { seatCushion } : {}),
+      ...(legShape !== undefined ? { legShape } : {}),
       seats: Math.max(1, Math.min(5, Math.round(result.appearance.seats))),
       legHeight: Math.max(0, Math.min(0.3, result.appearance.legHeight)),
       seatHeight: Math.max(0.25, Math.min(0.65, result.appearance.seatHeight)),
       armHeight: Math.max(0.35, Math.min(0.85, result.appearance.armHeight)),
       backDepth: Math.max(0.08, Math.min(0.35, result.appearance.backDepth)),
       softness: Math.max(0.01, Math.min(0.15, result.appearance.softness)),
+      ...(armWidth !== undefined ? { armWidth: Math.max(0.03, Math.min(0.2, armWidth)) } : {}),
+      ...(backCushions !== undefined ? { backCushions: Math.max(1, Math.min(5, Math.round(backCushions))) } : {}),
+      ...(backSlope !== undefined ? { backSlope: Math.max(0, Math.min(0.2, backSlope)) } : {}),
+      ...(regularDepth !== undefined ? { regularDepth: Math.max(0.35, Math.min(1, regularDepth)) } : {}),
     },
     w: read("width"), d: read("depth"), h: read("height"),
     sourceUrl: "", missingDimensions,

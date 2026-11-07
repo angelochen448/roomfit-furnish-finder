@@ -17,3 +17,8 @@
 # Sofa dimensional accuracy
 - [x] Make all sofa parts scale proportionally and normalize actual geometry bounds to confirmed dimensions.
 - [x] Measure complete and individual mesh bounds across four dimensions and four appearances (16 geometry tests); verify rendering and rotation in the room.
+
+# Imported seating silhouette
+- [x] Extend photo appearance parameters without changing measurement extraction or import UI.
+- [x] Improve arms, cushions, backs, chaise bases and legs; normalize imported armchairs too.
+- [x] Verify classic rolled/tufted and modern chaise sofa rendering, 24 sofa bounds cases, imported armchair bounds, and real IKEA chair photo import (80 × 84 × 75 cm); 46 tests passed.
