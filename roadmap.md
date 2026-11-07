@@ -1,3 +1,8 @@
+# Furniture category approximations
+- [x] Extend photo classification and optional traits for chairs, stools, tables, desks and beds; retain existing sofas and armchairs.
+- [x] Add normalized procedural shapes and catalog entries without changing photo-only inputs or room controls.
+- [x] Test dimensions and contrasting shapes (87 tests); verify actual photo import at 80 × 84 × 75 cm and all six categories placed/rotated on desktop, plus mobile rendering.
+
 # Photo-only inputs
 - [x] Remove product-link modes and optional name input; preserve measurement review.
 - [x] Surface the user's room-photo upload alongside furniture photos and verify uploads on desktop/mobile; 62 regression tests passed.

@@ -10,6 +10,13 @@ const sample: PhotoResult = {
   height: { value: 75, unit: "cm", kind: "overall", evidence: "Overall height 75 cm" },
 };
 describe("measurement photos", () => {
+  it.each(["sofa", "bed", "desk", "chair", "table", "stool"] as const)("preserves %s classification and confirmed dimensions", type => {
+    expect(productFromPhoto({ ...sample, type })).toMatchObject({ type, w: 0.8, d: 0.9, h: 0.75 });
+  });
+  it("preserves table shape and chair traits without accepting seat-only measurements", () => {
+    const product = productFromPhoto({ ...sample, type: "stool", depth: { ...sample.depth, kind: "seat" }, structure: { supports: "sled", topShape: "oval", seatShape: "round", backStyle: "none", footrest: true, legStyle: "splayed", seatLevel: 2, mattressHeight: 2, drawers: 20, thickness: 0.05, legThickness: 0.03, panels: 2, openBack: false, material: "wood" } });
+    expect(product).toMatchObject({ d: 0, missingDimensions: ["depth"], structure: { seatShape: "round", topShape: "oval", seatLevel: 0.95, mattressHeight: 0.35, drawers: 4, footrest: true } });
+  });
   it("clamps new component fractions without overriding diagram dimensions", () => {
     expect(productFromPhoto({ ...sample, appearance: { ...sample.appearance, cushionHeight: 2, backHeight: -1, legThickness: 2, silhouette: "boxy", armProfile: "rectangular", upholstery: "woven" } })).toMatchObject({ w: 0.8, d: 0.9, h: 0.75, appearance: { cushionHeight: 0.24, backHeight: 0.3, legThickness: 0.08, silhouette: "boxy", armProfile: "rectangular", upholstery: "woven" } });
   });

@@ -1,6 +1,7 @@
 import type { PlacedItem } from "@/lib/room";
 import { SeatingMesh } from "./SeatingMesh";
 import { DimensionedFurniture } from "./DimensionedFurniture";
+import { ShapeFurniture } from "./ShapeFurniture";
 
 function B({ p, s, c, r = 0.6 }: { p: [number, number, number]; s: [number, number, number]; c: string; r?: number }) {
   return (
@@ -15,6 +16,7 @@ const LEG = "#3a2c22";
 
 /** Procedural furniture built in its own local space, origin at floor center. */
 export function FurnitureMesh({ item }: { item: PlacedItem }) {
+  if (["chair", "stool", "table", "coffeeTable", "desk", "bed"].includes(item.type)) return <DimensionedFurniture w={item.w} d={item.d} h={item.h}><ShapeFurniture item={item} /></DimensionedFurniture>;
   if (item.type === "sofa" || (item.type === "armchair" && item.appearance) || item.structure) return <DimensionedFurniture w={item.w} d={item.d} h={item.h}><FurnitureParts item={item} /></DimensionedFurniture>;
   return <FurnitureParts item={item} />;
 }
@@ -103,6 +105,7 @@ function FurnitureParts({ item }: { item: PlacedItem }) {
         </group>
       );
   }
+  return null;
 }
 
 /** Image-driven variants reuse the existing primitive renderer and bounds wrapper. */
