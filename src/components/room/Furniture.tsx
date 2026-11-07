@@ -1,5 +1,6 @@
 import type { PlacedItem } from "@/lib/room";
 import { SeatingMesh } from "./SeatingMesh";
+import { DimensionedFurniture } from "./DimensionedFurniture";
 
 function B({ p, s, c, r = 0.6 }: { p: [number, number, number]; s: [number, number, number]; c: string; r?: number }) {
   return (
@@ -14,6 +15,11 @@ const LEG = "#3a2c22";
 
 /** Procedural furniture built in its own local space, origin at floor center. */
 export function FurnitureMesh({ item }: { item: PlacedItem }) {
+  if (item.type === "sofa") return <DimensionedFurniture w={item.w} d={item.d} h={item.h}><FurnitureParts item={item} /></DimensionedFurniture>;
+  return <FurnitureParts item={item} />;
+}
+
+function FurnitureParts({ item }: { item: PlacedItem }) {
   const { w, d, h, color: c } = item;
   if ((item.type === "sofa" || item.type === "armchair") && item.appearance) return <SeatingMesh item={item} />;
   switch (item.type) {
@@ -28,14 +34,14 @@ export function FurnitureMesh({ item }: { item: PlacedItem }) {
     }
     case "sofa":
       return (
-        <group>
-          <B p={[0, 0.25, 0]} s={[w, 0.3, d]} c={c} r={0.9} />
-          <B p={[0, h * 0.6, -d / 2 + 0.1]} s={[w, h * 0.6, 0.2]} c={c} r={0.9} />
-          <B p={[-w / 2 + 0.1, 0.45, 0]} s={[0.2, 0.45, d]} c={c} r={0.9} />
-          <B p={[w / 2 - 0.1, 0.45, 0]} s={[0.2, 0.45, d]} c={c} r={0.9} />
-          <B p={[-w / 4 + 0.05, 0.45, 0.05]} s={[w / 2 - 0.25, 0.12, d - 0.25]} c={c} r={1} />
-          <B p={[w / 4 - 0.05, 0.45, 0.05]} s={[w / 2 - 0.25, 0.12, d - 0.25]} c={c} r={1} />
-          <B p={[0, 0.05, 0]} s={[w - 0.1, 0.1, d - 0.1]} c={LEG} />
+        <group scale={[w, h, d]}>
+          <B p={[0, 0.3, 0]} s={[1, 0.36, 1]} c={c} r={0.9} />
+          <B p={[0, 0.7, -0.39]} s={[1, 0.6, 0.22]} c={c} r={0.9} />
+          <B p={[-0.45, 0.53, 0]} s={[0.1, 0.54, 1]} c={c} r={0.9} />
+          <B p={[0.45, 0.53, 0]} s={[0.1, 0.54, 1]} c={c} r={0.9} />
+          <B p={[-0.2, 0.54, 0.06]} s={[0.38, 0.14, 0.72]} c={c} r={1} />
+          <B p={[0.2, 0.54, 0.06]} s={[0.38, 0.14, 0.72]} c={c} r={1} />
+          <B p={[0, 0.06, 0]} s={[0.95, 0.12, 0.9]} c={LEG} />
         </group>
       );
     case "armchair":
