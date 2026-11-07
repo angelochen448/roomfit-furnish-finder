@@ -7,8 +7,9 @@ import { FurnitureMesh } from "@/components/room/Furniture";
 import type { PlacedItem, SeatingAppearance } from "./room";
 import { CATALOG } from "./room";
 import { productFromPhoto, type PhotoResult } from "./measurement-photo";
+import type { FurnitureAssembly, FurniturePart } from "./furniture-parts";
 
-extend({ Group: THREE.Group, Mesh: THREE.Mesh, BoxGeometry: THREE.BoxGeometry, CylinderGeometry: THREE.CylinderGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry, MeshStandardMaterial: THREE.MeshStandardMaterial });
+extend({ Group: THREE.Group, Mesh: THREE.Mesh, BoxGeometry: THREE.BoxGeometry, CylinderGeometry: THREE.CylinderGeometry, SphereGeometry: THREE.SphereGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry, MeshStandardMaterial: THREE.MeshStandardMaterial });
 
 const appearance: SeatingAppearance = { arms: "wide", seats: 3, back: "split", legs: "wood", legHeight: 0.15, seatHeight: 0.5, armHeight: 0.7, backDepth: 0.2, softness: 0.08, chaise: "none" };
 const dimensions = [[2.1, 0.9, 0.85], [1.4, 0.65, 0.6], [3.2, 1.5, 1.2], [0.8, 0.5, 0.4]];
@@ -148,6 +149,17 @@ describe("imported seating silhouette", () => {
 });
 
 describe("existing and appearance-driven furniture categories", () => {
+  it.each(["A-frame", "pedestal"])("fits reusable %s assembly to 1.6 × 0.8 × 0.78 m", async design => {
+    const base: FurniturePart = { label: "top", shape: "box", position: { x: 0, y: 0.98, z: 0 }, size: { x: 1, y: 0.04, z: 1 }, rotation: { x: 0, y: 0, z: 0 }, start: { x: 0, y: 0, z: 0 }, end: { x: 0, y: 0, z: 0 }, color: "#333333", material: "metal" };
+    const parts: FurniturePart[] = design === "A-frame" ? [base, ...[-1, 1].flatMap(x => [-1, 1].map(z => ({ ...base, label: `leg${x}${z}`, shape: "beam" as const, size: { x: 0.04, y: 0.01, z: 0.04 }, start: { x: x * 0.38, y: 0.02, z: z * 0.45 }, end: { x: x * 0.38, y: 0.96, z: z * 0.22 } })))] : [{ ...base, shape: "cylinder" }, { ...base, label: "column", shape: "cylinder", position: { x: 0, y: 0.5, z: 0 }, size: { x: 0.16, y: 0.96, z: 0.16 } }];
+    const assembly: FurnitureAssembly = { supported: true, limitations: "", parts };
+    const { group, cleanup } = await renderSofa({ id: "parts", type: "desk", label: "parts", x: 0, z: 0, rot: 0, w: 1.6, d: 0.8, h: 0.78, color: "#333333", assembly });
+    const box = new Box3().setFromObject(group, true), size = box.getSize(new Vector3());
+    expect(size.x).toBeCloseTo(1.6, 5); expect(size.y).toBeCloseTo(0.78, 5); expect(size.z).toBeCloseTo(0.8, 5); expect(box.min.y).toBeCloseTo(0, 5);
+    const leg = group.getObjectByName("part-leg11");
+    if (design === "A-frame") { expect(leg instanceof Mesh && Math.abs(leg.quaternion.x) > 0.05).toBe(true); expect(group.getObjectByName("support-1")).toBeUndefined(); }
+    cleanup();
+  });
   it.each([
     { type: "table" as const, structure: { topShape: "oval" as const, supports: "pedestal" as const }, part: "shape-top", geometry: "CylinderGeometry" },
     { type: "table" as const, structure: { topShape: "rectangular" as const, supports: "trestle" as const }, part: "trestle-stretcher", geometry: "BoxGeometry" },
