@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RotateCw, Trash2, Upload, Grid3x3, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,10 @@ export function RoomPlanner() {
   const [items, setItems] = useState<PlacedItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(true);
+
+  useEffect(() => () => {
+    if (photo.startsWith("blob:")) URL.revokeObjectURL(photo);
+  }, [photo]);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
   const allProblems = useMemo(() => items.map((i) => ({ i, p: itemProblems(i, items, room) })), [items, room]);
@@ -41,7 +45,8 @@ export function RoomPlanner() {
     img.onload = () => {
       const out = document.createElement("canvas");
       out.width = canvas.width; out.height = canvas.height;
-      const ctx = out.getContext("2d")!;
+      const ctx = out.getContext("2d");
+      if (!ctx) return;
       const s = Math.max(out.width / img.width, out.height / img.height);
       ctx.drawImage(img, (out.width - img.width * s) / 2, (out.height - img.height * s) / 2, img.width * s, img.height * s);
       ctx.drawImage(canvas, 0, 0);
@@ -59,13 +64,13 @@ export function RoomPlanner() {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground lg:h-dvh">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 lg:px-6">
         <div className="flex items-baseline gap-3">
           <h1 className="font-display text-2xl">Nestwise</h1>
           <span className="text-sm text-muted-foreground">Room studio</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
             <label className="cursor-pointer"><Upload className="size-4" />Room photo
               <input type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
@@ -76,8 +81,8 @@ export function RoomPlanner() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="w-72 shrink-0 space-y-6 overflow-y-auto border-r border-border p-5">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <aside className="order-3 w-full shrink-0 space-y-6 overflow-y-auto border-t border-border p-5 lg:order-1 lg:w-72 lg:border-r lg:border-t-0">
           <section className="space-y-3">
             <h2 className="eyebrow">Room size (m)</h2>
             <div className="grid grid-cols-3 gap-2">
@@ -93,7 +98,6 @@ export function RoomPlanner() {
 
           <section className="space-y-4">
             <h2 className="eyebrow">Match the photo</h2>
-            <p className="text-xs text-muted-foreground">Line the orange floor outline up with the floor in your photo.</p>
             {rigSlider("height", "Camera height", 0.5, 3, 0.05, "m")}
             {rigSlider("distance", "Distance", 1, 10, 0.1, "m")}
             {rigSlider("pitch", "Tilt down", -10, 60, 1, "°")}
@@ -103,7 +107,7 @@ export function RoomPlanner() {
           </section>
         </aside>
 
-        <main className="relative min-w-0 flex-1 overflow-hidden bg-muted">
+        <main className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
           <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0"><RoomScene room={room} items={items} selectedId={selectedId} showGrid={showGrid}
             rig={rig} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
@@ -118,7 +122,7 @@ export function RoomPlanner() {
           </div>
 
           {selected && (
-            <div className="panel absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 px-4 py-3">
+            <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
                 <div className="font-mono text-xs text-muted-foreground">{selected.w}×{selected.d}×{selected.h} m</div>
@@ -132,18 +136,17 @@ export function RoomPlanner() {
           )}
         </main>
 
-        <aside className="w-64 shrink-0 overflow-y-auto border-l border-border p-5">
+        <aside className="order-2 w-full shrink-0 overflow-y-auto border-t border-border p-5 lg:order-3 lg:w-64 lg:border-l lg:border-t-0">
           <h2 className="eyebrow mb-3">Add furniture</h2>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
             {CATALOG.map((c) => (
-              <button key={c.type} onClick={() => add(c)} className="catalog-tile">
+              <Button variant="outline" key={c.type} onClick={() => add(c)} className="catalog-tile h-auto whitespace-normal">
                 <span className="size-6 rounded-full" style={{ background: c.color }} />
                 <span className="text-sm font-medium">{c.label}</span>
                 <span className="font-mono text-[10px] text-muted-foreground">{c.w}×{c.d} m</span>
-              </button>
+              </Button>
             ))}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Drag pieces on the floor. Click one to rotate, recolor or remove it.</p>
         </aside>
       </div>
     </div>

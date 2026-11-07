@@ -131,7 +131,7 @@ export function RoomScene({ room, items, selectedId, showGrid, rig, onSelect, on
       )}
 
       {items.map((it) => (
-        <Item key={it.id} item={it} problems={problems[it.id]} selected={it.id === selectedId}
+        <Item key={it.id} item={it} problems={problems[it.id] ?? []} selected={it.id === selectedId}
           room={room} onSelect={onSelect} onMove={onMove} />
       ))}
     </Canvas>

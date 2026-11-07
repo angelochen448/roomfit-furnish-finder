@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Room studio
+- Keep room geometry and fit rules in the browser-safe room module, with Three.js rendering in the room components; this keeps placement logic testable independently of WebGL.
+- Treat photo alignment as manual camera calibration, not automatic room reconstruction; a single uploaded photo does not supply measured 3D geometry.
