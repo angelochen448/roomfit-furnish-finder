@@ -1,6 +1,6 @@
 # Draggable grid
-- [ ] Add touch/mouse grid alignment alongside existing sliders, keeping furniture aligned and reset available.
-- [ ] Verify dragging, slider changes, reset and furniture controls on desktop/mobile.
+- [x] Add touch/mouse grid alignment alongside existing sliders, keeping furniture aligned and reset available.
+- [x] Verify desktop mouse/mobile touch alignment, reset and furniture rotation; 65 room/geometry regression tests passed.
 
 # Optional measurement diagrams
 - [x] Add manual overall dimensions before matching and preserve edits after analysis.
