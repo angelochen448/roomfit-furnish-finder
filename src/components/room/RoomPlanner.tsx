@@ -73,8 +73,8 @@ export function RoomPlanner() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
-            <label className="cursor-pointer"><Upload className="size-4" />Room photo
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+            <label className="cursor-pointer"><Upload className="size-4" />Upload room photo
+              <input type="file" accept="image/*" aria-label="Upload room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
             </label>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowGrid((g) => !g)}><Grid3x3 className="size-4" />{showGrid ? "Hide" : "Show"} grid</Button>
@@ -138,6 +138,15 @@ export function RoomPlanner() {
         </main>
 
         <aside className="order-2 w-full shrink-0 overflow-y-auto border-t border-border p-5 lg:order-3 lg:w-64 lg:border-l lg:border-t-0">
+          <section className="mb-6 space-y-3 border-b border-border pb-5">
+            <h2 className="eyebrow">Your room photo</h2>
+            <img src={photo} alt="Current room photo" className="aspect-video w-full rounded border border-border object-cover" />
+            <Button variant="outline" className="w-full" asChild>
+              <label className="cursor-pointer"><Upload className="size-4" />Choose room photo
+                <input type="file" accept="image/*" aria-label="Choose room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+            </Button>
+          </section>
           <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">

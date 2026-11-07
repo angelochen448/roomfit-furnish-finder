@@ -1,4 +1,8 @@
 # Furniture-link import
+# Photo-only inputs
+- [ ] Remove product-link modes and optional name input; preserve measurement review.
+- [ ] Surface the user's room-photo upload alongside furniture photos and verify uploads on desktop/mobile.
+
 - [x] Connect product-page reading service.
 - [x] Import IKEA product names and assembled dimensions from a pasted link.
 - [x] Confirm dimensions and place an approximate storage/furniture model in the room.
