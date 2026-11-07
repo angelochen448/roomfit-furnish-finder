@@ -16,6 +16,7 @@ export function SeatingMesh({ item }: { item: PlacedItem }) {
   const block = (key: string, p: [number, number, number], s: [number, number, number], c = color, round = radius) => <RoundedBox key={key} position={p} args={s} radius={Math.min(round, ...s.map((v) => v * 0.45))} smoothness={4} castShadow receiveShadow><meshStandardMaterial color={c} roughness={0.96} /></RoundedBox>;
   return <group>
     {block("base", [0, leg + (seatTop - cushionH - leg) / 2, 0], [w - armW, Math.max(h * 0.06, seatTop - cushionH - leg), d])}
+    {block("back support", [0, seatTop - cushionH / 2, -d / 2 + backD / 2], [innerW, cushionH * 1.3, backD], color, radius * 0.4)}
     {Array.from({ length: a.seats }, (_, i) => {
       const width = innerW / a.seats;
       const chaise = (a.chaise === "left" && i === 0) || (a.chaise === "right" && i === a.seats - 1);
