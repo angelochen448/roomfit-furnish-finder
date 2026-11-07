@@ -13,3 +13,7 @@
 - [x] Combine optional IKEA link, product photos and measurement diagrams in one import.
 - [x] Extract appearance details and render rounded, product-specific seating approximations at confirmed dimensions.
 - [x] Verify real product photos, measurements and placement together (orange armless IKEA chair, 80 × 84 × 75 cm).
+
+# Sofa dimensional accuracy
+- [ ] Make all sofa parts scale proportionally and normalize actual geometry bounds to confirmed dimensions.
+- [ ] Measure complete and individual mesh bounds across multiple dimensions and appearances.
