@@ -8,6 +8,8 @@ import { CATALOG, itemProblems, type CatalogEntry, type PlacedItem, type Room } 
 import { RoomScene, type CameraRig } from "./RoomScene";
 import sampleRoom from "@/assets/sample-room.jpg";
 import { ProductLinkImport } from "./ProductLinkImport";
+import { RoomPhotoAnalysis } from "./RoomPhotoAnalysis";
+import { calibrateFloor, occupiedAreas, occupiedBy, findOpenPosition, type RoomAnalysis, type PhotoFrame } from "@/lib/room-photo";
 
 const DEFAULT_RIG: CameraRig = { height: 1.6, distance: 4.2, yaw: 0, pitch: 14, fov: 60 };
 
@@ -20,25 +22,51 @@ export function RoomPlanner() {
   const [showGrid, setShowGrid] = useState(true);
   const [movingGrid, setMovingGrid] = useState(false);
   const [alignment, setAlignment] = useState({ x: 0, y: 0 });
+  const [analysis, setAnalysis] = useState<RoomAnalysis | null>(null);
+  const [placementError, setPlacementError] = useState<string | null>(null);
+  const [frame, setFrame] = useState<PhotoFrame>({ width: 1, height: 1, imageWidth: 1, imageHeight: 1 });
+  const scene = useRef<HTMLElement | null>(null);
   const gridDrag = useRef<{ pointerId: number; x: number; y: number; origin: { x: number; y: number }; width: number; height: number } | null>(null);
 
   useEffect(() => () => {
     if (photo.startsWith("blob:")) URL.revokeObjectURL(photo);
   }, [photo]);
+  useEffect(() => {
+    const element = scene.current; if (!element) return;
+    const observer = new ResizeObserver(([entry]) => { if (entry) setFrame(f => ({ ...f, width: entry.contentRect.width, height: entry.contentRect.height })); });
+    observer.observe(element); return () => observer.disconnect();
+  }, []);
+  const occupied = useMemo(() => occupiedAreas(analysis, rig, alignment, frame), [analysis, rig, alignment, frame]);
+  const alignFloor = (result: RoomAnalysis) => {
+    const suggestion = calibrateFloor(result, room, frame, rig);
+    if (suggestion) { setRig(suggestion.rig); setAlignment(suggestion.alignment); setShowGrid(true); setPlacementError(null); }
+    else setPlacementError("Floor alignment is uncertain. Adjust the grid manually before placing furniture.");
+  };
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
-  const allProblems = useMemo(() => items.map((i) => ({ i, p: itemProblems(i, items, room) })), [items, room]);
+  const allProblems = useMemo(() => items.map((i) => ({ i, p: [...itemProblems(i, items, room), ...(occupiedBy(i, occupied.areas) ? ["Occupied by existing furniture"] : [])] })), [items, room, occupied.areas]);
   const badCount = allProblems.filter((x) => x.p.length).length;
 
   const add = (c: CatalogEntry) => {
+    if (occupied.unresolved) { setPlacementError("An existing item's floor position is unclear. Adjust alignment or remove the incorrect detection before placing."); return; }
+    const position = findOpenPosition(c, room, occupied.areas);
+    if (!position && occupied.areas.length) { setPlacementError("No unoccupied space fits this furniture. Existing furniture areas are blocked."); return; }
+    setPlacementError(null);
     const id = crypto.randomUUID();
-    setItems((s) => [...s, { ...c, id, x: 0, z: 0, rot: 0 }]);
+    setItems((s) => [...s, { ...c, id, x: position?.x ?? 0, z: position?.z ?? 0, rot: 0 }]);
     setSelectedId(id);
   };
-  const patch = (id: string, p: Partial<PlacedItem>) => setItems((s) => s.map((i) => (i.id === id ? { ...i, ...p } : i)));
+  const patch = (id: string, p: Partial<PlacedItem>) => {
+    const current = items.find(i => i.id === id); if (!current) return;
+    const moving = p.x !== undefined || p.z !== undefined || p.rot !== undefined;
+    const obstacle = occupiedBy({ ...current, ...p }, occupied.areas);
+    if (moving && (obstacle || occupied.unresolved)) { setPlacementError(obstacle ? `That spot is occupied by ${obstacle.label}.` : "Existing furniture position unclear; review detections first."); return; }
+    setPlacementError(null); setItems(s => s.map(i => i.id === id ? { ...i, ...p } : i));
+  };
 
   const onFile = (f?: File) => {
     if (!f) return;
+    setAnalysis(null); setPlacementError(null); setMovingGrid(false);
     setPhoto(URL.createObjectURL(f));
   };
 
@@ -62,7 +90,7 @@ export function RoomPlanner() {
 
   const rigSlider = (key: keyof CameraRig, label: string, min: number, max: number, step: number, unit: string) => (
     <div className="space-y-1.5">
-      <div className="flex justify-between text-xs"><span className="text-muted-foreground">{label}</span><span className="font-mono">{rig[key]}{unit}</span></div>
+      <div className="flex justify-between text-xs"><span className="text-muted-foreground">{label}</span><span className="font-mono">{Math.round(rig[key] * 100) / 100}{unit}</span></div>
       <Slider value={[rig[key]]} min={min} max={max} step={step} onValueChange={([v]) => setRig((r) => ({ ...r, [key]: v }))} />
     </div>
   );
@@ -112,10 +140,10 @@ export function RoomPlanner() {
           </section>
         </aside>
 
-        <main className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
-          <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" />
+        <main ref={scene} data-occupied-count={occupied.areas.length} className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
+          <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" onLoad={event => { const img = event.currentTarget; setFrame(f => ({ ...f, imageWidth: img.naturalWidth, imageHeight: img.naturalHeight })); }} />
           <div className="absolute inset-0"><RoomScene room={room} items={items} selectedId={selectedId} showGrid={showGrid}
-            rig={rig} alignment={alignment} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
+            rig={rig} alignment={alignment} occupied={occupied.areas} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
           {movingGrid && <div aria-label="Drag floor grid" data-alignment-x={alignment.x} data-alignment-y={alignment.y} className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
             onPointerDown={(event) => {
               if (gridDrag.current || event.button !== 0) return;
@@ -143,13 +171,14 @@ export function RoomPlanner() {
               </div>
             )}
           </div>
+          {placementError && <p role="alert" className="absolute left-4 right-4 top-16 border border-border bg-background p-3 text-xs text-destructive break-words">{placementError}</p>}
 
           {selected && !movingGrid && (
             <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
                 <div className="font-mono text-xs text-muted-foreground">{[selected.w, selected.d, selected.h].map((v) => v.toFixed(3)).join(" × ")} m</div>
-                {itemProblems(selected, items, room).map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
+                {allProblems.find(p => p.i.id === selected.id)?.p.map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
               </div>
               <input type="color" value={selected.color} onChange={(e) => patch(selected.id, { color: e.target.value })}
                 className="size-8 cursor-pointer rounded border border-border bg-transparent" aria-label="Color" />
@@ -168,6 +197,8 @@ export function RoomPlanner() {
                 <input type="file" accept="image/*" aria-label="Choose room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             </Button>
+            <RoomPhotoAnalysis photo={photo} analysis={analysis} onAnalysis={result => { setAnalysis(result); if (!analysis) alignFloor(result); }} onAlign={() => { if (analysis) alignFloor(analysis); }} onClear={() => { setAnalysis(null); setPlacementError(null); }} />
+            {occupied.unresolved > 0 && <p role="status" className="text-xs text-destructive">{occupied.unresolved} occupied area{occupied.unresolved === 1 ? "" : "s"} could not be located. Placement paused until reviewed.</p>}
           </section>
           <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>

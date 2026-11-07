@@ -1,3 +1,8 @@
+# AI room analysis
+- [x] Detect floor perspective and existing furniture from a room photo; allow review, cancellation and manual alignment, with partial rear-edge alignment when near corners are missing.
+- [x] Block additions, dragging and rotations in detected occupied floor areas; invalidate detections on photo replacement.
+- [x] Verified real furnished photo (six items), blocked drag, sample-room rear-edge alignment, desktop/mobile and replacement clearing; 20 regression tests passed. Full-floor perspective fit is unit-tested; both reference photos correctly used partial alignment rather than inventing hidden corners.
+
 # Draggable grid
 - [x] Add touch/mouse grid alignment alongside existing sliders, keeping furniture aligned and reset available.
 - [x] Verify desktop mouse/mobile touch alignment, reset and furniture rotation; 65 room/geometry regression tests passed.
