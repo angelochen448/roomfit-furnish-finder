@@ -36,10 +36,10 @@ export function RoomPhotoAnalysis({ photo, analysis, onAnalysis, onAlign, onClea
     {pending && <Button className="w-full" variant="outline" onClick={() => { active.current?.abort(); active.current = null; setPending(false); }}><X className="size-4" />Cancel analysis</Button>}
     {error && <p role="alert" className="text-xs text-destructive break-words">{error}</p>}
     {analysis && <div className="space-y-2">
-      <p role="status" className="text-xs text-muted-foreground">{analysis.floor ? "Floor alignment estimated" : analysis.rearEdge ? "Rear floor edge found · partial alignment" : "Floor unclear · manual alignment needed"} · {analysis.furniture.length} existing item{analysis.furniture.length === 1 ? "" : "s"}</p>
+      <p role="status" className="text-xs text-muted-foreground">{analysis.view === "overhead" ? "Overhead view · estimated alignment" : analysis.floor ? "Floor alignment estimated" : analysis.rearEdge ? "Rear floor edge found · partial alignment" : "Furniture detected · room boundaries not visible"} · {analysis.furniture.length} existing item{analysis.furniture.length === 1 ? "" : "s"}</p>
       <p className="text-xs text-muted-foreground">Estimated occupied areas · review before placing. Room dimensions must be measured.</p>
       {analysis.notes && <p className="text-xs text-muted-foreground break-words">{analysis.notes}</p>}
-      {(analysis.floor || analysis.rearEdge) && <Button className="w-full" variant="outline" onClick={onAlign}><RotateCcw className="size-4" />Apply floor alignment</Button>}
+      {(analysis.floor || analysis.rearEdge || analysis.view === "overhead" || analysis.furniture.some(o => o.footprint.length >= 3)) && <Button className="w-full" variant="outline" onClick={onAlign}><RotateCcw className="size-4" />Apply floor alignment</Button>}
       {analysis.furniture.map((o, index) => <div key={index} className="flex items-center justify-between gap-2 border-b border-border py-2">
         <span className="text-xs break-words">{o.label} · {Math.round(o.confidence * 100)}%</span>
         <Button variant="ghost" size="icon" className="shrink-0" aria-label={`Remove detection ${o.label}`} title="Remove incorrect detection" onClick={() => onAnalysis({ ...analysis, furniture: analysis.furniture.filter((_, i) => i !== index) })}><X className="size-4" /></Button>

@@ -4,6 +4,7 @@ import { footprint, fitsInRoom, type CatalogEntry, type PlacedItem, type Room } 
 
 const point = z.object({ x: z.number(), y: z.number() });
 export const roomVisionSchema = z.object({
+  view: z.enum(["perspective", "overhead"]),
   rearEdge: z.object({ left: point, right: point, confidence: z.number() }).nullable(),
   floor: z.object({ backLeft: point, backRight: point, frontRight: point, frontLeft: point, confidence: z.number() }).nullable(),
   furniture: z.array(z.object({ label: z.string(), footprint: z.array(point), confidence: z.number() })),
@@ -11,7 +12,7 @@ export const roomVisionSchema = z.object({
 });
 export const roomPhotoInputSchema = z.object({ image: z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/) });
 export type ImagePoint = z.infer<typeof point>;
-export type RoomAnalysis = Omit<z.infer<typeof roomVisionSchema>, "rearEdge"> & { rearEdge?: z.infer<typeof roomVisionSchema>["rearEdge"] };
+export type RoomAnalysis = Omit<z.infer<typeof roomVisionSchema>, "rearEdge" | "view"> & { view?: "perspective" | "overhead"; rearEdge?: z.infer<typeof roomVisionSchema>["rearEdge"] };
 export interface RoomCamera { height: number; distance: number; yaw: number; pitch: number; fov: number }
 export interface PhotoFrame { width: number; height: number; imageWidth: number; imageHeight: number }
 export interface OccupiedArea { id: string; label: string; x: number; z: number; w: number; d: number }
@@ -46,14 +47,28 @@ export function normalizeRoomAnalysis(input: RoomAnalysis): RoomAnalysis {
     && floor.confidence >= 0.5 && floor.backRight.x > floor.backLeft.x
     && floor.frontRight.x > floor.frontLeft.x && (floor.frontLeft.y + floor.frontRight.y) > (floor.backLeft.y + floor.backRight.y) + 0.1;
   const rear = input.rearEdge;
-  return { rearEdge: rear && rear.confidence >= 0.5 && validPoint(rear.left) && validPoint(rear.right) && rear.right.x - rear.left.x > 0.05 ? rear : null, floor: validFloor ? floor : null, furniture: input.furniture.slice(0, 20)
+  return { view: input.view ?? "perspective", rearEdge: rear && rear.confidence >= 0.5 && validPoint(rear.left) && validPoint(rear.right) && rear.right.x - rear.left.x > 0.05 ? rear : null, floor: validFloor ? floor : null, furniture: input.furniture.slice(0, 20)
     .map(o => ({ ...o, footprint: o.footprint.length >= 3 && o.footprint.length <= 8 && o.footprint.every(validPoint) ? o.footprint : [], label: o.label.slice(0, 80) || "Existing furniture", confidence: Math.max(0, Math.min(1, o.confidence)) })), notes: input.notes.slice(0, 800) };
 }
 
 /** Fit camera perspective to the estimated room-floor quad; no dimensions are inferred. */
 export function calibrateFloor(analysis: RoomAnalysis, room: Room, frame: PhotoFrame, initial: RoomCamera) {
+  if (analysis.view === "overhead") {
+    // Orientation only: measured room dimensions set the scale, not photo inference.
+    const aspect = frame.width / frame.height;
+    const height = Math.max(room.depth, room.width / aspect) / (2 * Math.tan(THREE.MathUtils.degToRad(initial.fov / 2)));
+    return { rig: { ...initial, height, distance: 0.01, yaw: 0, pitch: 89.9 }, alignment: { x: 0, y: 0 }, error: 0 };
+  }
   if (!analysis.floor) {
-    if (!analysis.rearEdge) return null;
+    if (!analysis.rearEdge) {
+      const contacts = analysis.furniture.flatMap(o => o.footprint).map(p => imageToViewport(p, frame));
+      if (!contacts.length) return null;
+      // Keep detected floor contacts below the horizon; this is an orientation hint,
+      // not reconstruction of hidden room corners or inferred room measurements.
+      const top = Math.min(...contacts.map(p => p.y));
+      const requiredPitch = THREE.MathUtils.radToDeg(Math.atan((1 - 2 * top) * Math.tan(THREE.MathUtils.degToRad(initial.fov / 2)))) + 10;
+      return { rig: { ...initial, pitch: Math.min(80, Math.max(initial.pitch, requiredPitch)) }, alignment: { x: 0, y: 0 }, error: 0 };
+    }
     const left = imageToViewport(analysis.rearEdge.left, frame), right = imageToViewport(analysis.rearEdge.right, frame);
     const camera = roomCamera(initial, { x: 0, y: 0 }, frame);
     const a = new THREE.Vector3(-room.width / 2, 0, -room.depth / 2).project(camera);

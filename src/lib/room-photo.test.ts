@@ -7,6 +7,26 @@ const frame = { width: 1000, height: 800, imageWidth: 1000, imageHeight: 800 };
 const area = { id: "0", label: "Existing sofa", x: 0, z: 0, w: 2, d: 1 };
 const item = { type: "chair" as const, label: "Chair", color: "#123456", w: 0.5, d: 0.5, h: 0.8 };
 describe("AI occupied floor rules", () => {
+  it("projects overhead furniture without requiring hidden room boundaries", () => {
+    const analysis: RoomAnalysis = { view: "overhead", floor: null, rearEdge: null, notes: "", furniture: [{ label: "Sofa", confidence: 0.9, footprint: [{ x: 0.2, y: 0.02 }, { x: 0.7, y: 0.02 }, { x: 0.7, y: 0.3 }, { x: 0.2, y: 0.3 }] }] };
+    const suggestion = calibrateFloor(analysis, room, frame, rig);
+    if (!suggestion) throw new Error("Missing overhead orientation");
+    expect(suggestion.rig.pitch).toBe(89.9);
+    const occupied = occupiedAreas(analysis, suggestion.rig, suggestion.alignment, frame);
+    expect(occupied.unresolved).toBe(0);
+    expect(occupied.areas).toHaveLength(1);
+    const sofa = occupied.areas[0];
+    if (!sofa) throw new Error("Missing sofa area");
+    expect(occupiedBy({ ...item, x: sofa.x, z: sofa.z, rot: 0 }, occupied.areas)?.label).toBe("Sofa");
+  });
+  it("keeps portrait floor contacts below the horizon when room edges are hidden", () => {
+    const portrait = { width: 639, height: 424, imageWidth: 736, imageHeight: 920 };
+    const analysis: RoomAnalysis = { floor: null, notes: "", furniture: [{ label: "Cabinet", confidence: 0.8, footprint: [{ x: 0.4, y: 0.43 }, { x: 0.8, y: 0.43 }, { x: 0.8, y: 0.55 }, { x: 0.4, y: 0.55 }] }] };
+    const suggestion = calibrateFloor(analysis, room, portrait, { ...rig, pitch: 14 });
+    if (!suggestion) throw new Error("Missing orientation hint");
+    expect(occupiedAreas(analysis, suggestion.rig, suggestion.alignment, portrait).unresolved).toBe(0);
+    expect(room).toEqual({ width: 4, depth: 3, height: 2.6 });
+  });
   it("aligns a visible rear floor edge without pretending to infer scale", () => {
     const result = calibrateFloor({ floor: null, rearEdge: { left: { x: 0.2, y: 0.6 }, right: { x: 0.8, y: 0.6 }, confidence: 0.8 }, furniture: [], notes: "" }, room, frame, rig);
     expect(result?.rig).toEqual(rig);

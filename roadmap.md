@@ -1,3 +1,7 @@
+# Room-photo warning fixes
+- [ ] Handle furnished portrait and overhead photos without misleading failure alerts; preserve occupied-area blocking.
+- [ ] Verify both supplied photos and room-photo regression tests.
+
 # AI room analysis
 - [x] Detect floor perspective and existing furniture from a room photo; allow review, cancellation and manual alignment, with partial rear-edge alignment when near corners are missing.
 - [x] Block additions, dragging and rotations in detected occupied floor areas; invalidate detections on photo replacement.

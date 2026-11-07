@@ -40,7 +40,7 @@ export function RoomPlanner() {
   const alignFloor = (result: RoomAnalysis) => {
     const suggestion = calibrateFloor(result, room, frame, rig);
     if (suggestion) { setRig(suggestion.rig); setAlignment(suggestion.alignment); setShowGrid(true); setPlacementError(null); }
-    else setPlacementError("Floor alignment is uncertain. Adjust the grid manually before placing furniture.");
+    else setPlacementError(null);
   };
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
@@ -131,9 +131,9 @@ export function RoomPlanner() {
 
           <section className="space-y-4">
             <h2 className="eyebrow">Match the photo</h2>
-            {rigSlider("height", "Camera height", 0.5, 3, 0.05, "m")}
-            {rigSlider("distance", "Distance", 1, 10, 0.1, "m")}
-            {rigSlider("pitch", "Tilt down", -10, 60, 1, "°")}
+            {rigSlider("height", "Camera height", 0.5, Math.max(10, rig.height), 0.05, "m")}
+            {rigSlider("distance", "Distance", 0.01, 10, 0.1, "m")}
+            {rigSlider("pitch", "Tilt down", -10, 89.9, 1, "°")}
             {rigSlider("yaw", "Turn", -60, 60, 1, "°")}
             {rigSlider("fov", "Lens width", 30, 100, 1, "°")}
             <Button variant="ghost" size="sm" onClick={() => { setRig(DEFAULT_RIG); setAlignment({ x: 0, y: 0 }); }}>Reset view</Button>
