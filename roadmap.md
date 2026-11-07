@@ -1,4 +1,6 @@
 # Room-photo warning fixes
+- [ ] Reapply alignment on every completed analysis without resetting it on detection review; identify unresolved items and offer alignment restoration.
+- [ ] Verify overhead reanalysis after Reset view and occupied-area regression tests.
 - [x] Handle furnished portrait and overhead photos without misleading failure alerts; preserve occupied-area blocking.
 - [x] Verified both supplied photos at 639 × 770 with no runtime errors; overhead resolves six occupied areas, portrait resolves nine with one genuinely hidden lamp location remaining review-blocked. All 16 room regression tests passed.
 

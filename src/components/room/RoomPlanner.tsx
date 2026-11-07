@@ -197,8 +197,11 @@ export function RoomPlanner() {
                 <input type="file" accept="image/*" aria-label="Choose room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             </Button>
-            <RoomPhotoAnalysis photo={photo} analysis={analysis} onAnalysis={result => { setAnalysis(result); if (!analysis) alignFloor(result); }} onAlign={() => { if (analysis) alignFloor(analysis); }} onClear={() => { setAnalysis(null); setPlacementError(null); }} />
-            {occupied.unresolved > 0 && <p role="status" className="text-xs text-destructive">{occupied.unresolved} occupied area{occupied.unresolved === 1 ? "" : "s"} could not be located. Placement paused until reviewed.</p>}
+            <RoomPhotoAnalysis photo={photo} analysis={analysis} onAnalysis={result => { setAnalysis(result); alignFloor(result); }} onReview={setAnalysis} onAlign={() => { if (analysis) alignFloor(analysis); }} onClear={() => { setAnalysis(null); setPlacementError(null); }} />
+            {occupied.unresolved > 0 && <div className="space-y-2">
+              <p role="status" className="text-xs text-destructive">Placement paused: {occupied.unresolvedLabels.join(", ")} could not be mapped to the floor.</p>
+              <Button className="w-full" variant="outline" onClick={() => { if (analysis) alignFloor(analysis); }}><Grid3x3 className="size-4" />Restore floor alignment</Button>
+            </div>}
           </section>
           <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>

@@ -7,6 +7,20 @@ const frame = { width: 1000, height: 800, imageWidth: 1000, imageHeight: 800 };
 const area = { id: "0", label: "Existing sofa", x: 0, z: 0, w: 2, d: 1 };
 const item = { type: "chair" as const, label: "Chair", color: "#123456", w: 0.5, d: 0.5, h: 0.8 };
 describe("AI occupied floor rules", () => {
+  it("restores all three overhead areas after the view is reset to perspective", () => {
+    const analysis: RoomAnalysis = { view: "overhead", floor: null, notes: "", furniture: ["Sofa", "Side table", "Chair"].map(label => ({ label, confidence: 0.9, footprint: [{ x: 0.2, y: 0.02 }, { x: 0.4, y: 0.02 }, { x: 0.4, y: 0.12 }, { x: 0.2, y: 0.12 }] })) };
+    expect(occupiedAreas(analysis, rig, { x: 0, y: 0 }, frame).unresolved).toBe(3);
+    const restored = calibrateFloor(analysis, room, frame, rig);
+    if (!restored) throw new Error("Missing alignment");
+    expect(occupiedAreas(analysis, restored.rig, restored.alignment, frame).unresolved).toBe(0);
+    expect(occupiedAreas(analysis, restored.rig, restored.alignment, frame).areas).toHaveLength(3);
+  });
+  it("names genuinely unlocated items and keeps them placement-blocking", () => {
+    const analysis: RoomAnalysis = { view: "overhead", floor: null, furniture: [{ label: "Hidden lamp", confidence: 0.5, footprint: [] }], notes: "" };
+    const result = occupiedAreas(analysis, rig, { x: 0, y: 0 }, frame);
+    expect(result.unresolvedLabels).toEqual(["Hidden lamp"]);
+    expect(result.unresolved).toBe(1);
+  });
   it("projects overhead furniture without requiring hidden room boundaries", () => {
     const analysis: RoomAnalysis = { view: "overhead", floor: null, rearEdge: null, notes: "", furniture: [{ label: "Sofa", confidence: 0.9, footprint: [{ x: 0.2, y: 0.02 }, { x: 0.7, y: 0.02 }, { x: 0.7, y: 0.3 }, { x: 0.2, y: 0.3 }] }] };
     const suggestion = calibrateFloor(analysis, room, frame, rig);
