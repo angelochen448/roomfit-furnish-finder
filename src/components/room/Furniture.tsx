@@ -1,4 +1,5 @@
 import type { PlacedItem } from "@/lib/room";
+import { SeatingMesh } from "./SeatingMesh";
 
 function B({ p, s, c, r = 0.6 }: { p: [number, number, number]; s: [number, number, number]; c: string; r?: number }) {
   return (
@@ -14,6 +15,7 @@ const LEG = "#3a2c22";
 /** Procedural furniture built in its own local space, origin at floor center. */
 export function FurnitureMesh({ item }: { item: PlacedItem }) {
   const { w, d, h, color: c } = item;
+  if ((item.type === "sofa" || item.type === "armchair") && item.appearance) return <SeatingMesh item={item} />;
   switch (item.type) {
     case "cabinet": {
       const leg = Math.min(0.1, h * 0.12);
