@@ -36,3 +36,4 @@ use the editor.
 - Missing overall measurements must remain blank and block placement until entered; never substitute seat dimensions, unfolded-bed dimensions, or package dimensions for the chair footprint.
 - Imported furniture uses explicitly labeled approximate procedural geometry rather than claiming manufacturer-exact models; keep extracted dimensions as the placement and fit-check source of truth.
 - Read measurement photos through a server-only vision helper with a browser-safe evidence validator; only explicit overall dimensions may populate placement inputs, so unreadable or seat/bed/package measurements remain missing.
+- Keep photo-derived seating appearance as normalized visual proportions carried with placed items; render rounded seating from those proportions within confirmed dimensions, never use inferred proportions as fit measurements.

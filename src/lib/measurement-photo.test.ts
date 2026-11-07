@@ -3,11 +3,16 @@ import { productFromPhoto, type PhotoResult } from "./measurement-photo";
 
 const sample: PhotoResult = {
   label: "Orange chair-bed", type: "armchair", color: "orange", notes: "",
+  bodyColor: "#ed702b",
+  appearance: { arms: "none", seats: 1, back: "single", legs: "hidden", legHeight: 0.02, seatHeight: 0.55, armHeight: 0.6, backDepth: 0.18, softness: 0.08, chaise: "none" },
   width: { value: 80, unit: "cm", kind: "overall", evidence: "Overall width 80 cm" },
   depth: { value: 90, unit: "cm", kind: "overall", evidence: "Overall depth 90 cm" },
   height: { value: 75, unit: "cm", kind: "overall", evidence: "Overall height 75 cm" },
 };
 describe("measurement photos", () => {
+  it("preserves the photographed armless silhouette and upholstery without changing overall dimensions", () => {
+    expect(productFromPhoto(sample)).toMatchObject({ color: "#ed702b", appearance: { arms: "none", seats: 1, legs: "hidden" }, w: 0.8, d: 0.9, h: 0.75 });
+  });
   it("converts explicit diagram dimensions into the placement footprint", () => {
     expect(productFromPhoto(sample)).toMatchObject({ w: 0.8, d: 0.9, h: 0.75, missingDimensions: [] });
   });

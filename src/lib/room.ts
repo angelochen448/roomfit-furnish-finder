@@ -9,6 +9,21 @@ export interface CatalogEntry {
   d: number; // depth (z)
   h: number; // height (y)
   color: string;
+  appearance?: SeatingAppearance;
+}
+
+/** Visual proportions only; confirmed overall dimensions remain the fit source of truth. */
+export interface SeatingAppearance {
+  arms: "none" | "slim" | "wide" | "rolled";
+  seats: number;
+  back: "single" | "split" | "tufted";
+  legs: "hidden" | "wood" | "metal";
+  legHeight: number;
+  seatHeight: number;
+  armHeight: number;
+  backDepth: number;
+  softness: number;
+  chaise: "none" | "left" | "right";
 }
 
 export const CATALOG: CatalogEntry[] = [
@@ -33,6 +48,7 @@ export interface PlacedItem {
   d: number;
   h: number;
   color: string;
+  appearance?: SeatingAppearance;
 }
 
 export interface Room {
