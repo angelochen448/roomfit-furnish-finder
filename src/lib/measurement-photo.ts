@@ -33,6 +33,15 @@ export const photoResultSchema = z.object({
   }),
 });
 export type PhotoResult = z.infer<typeof photoResultSchema>;
+// Structured vision output requires every key; null means an uncertain trait.
+export const photoVisionResultSchema = photoResultSchema.extend({
+  appearance: photoResultSchema.shape.appearance.extend({
+    armWidth: z.number().nullable(), backCushions: z.number().nullable(),
+    backSlope: z.number().nullable(), regularDepth: z.number().nullable(),
+    seatCushion: z.enum(["bench", "split"]).nullable(),
+    legShape: z.enum(["block", "tapered", "splayed", "sled"]).nullable(),
+  }),
+});
 export const photoInputSchema = z.object({
   images: z.array(z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)).min(1).max(4),
   name: z.string().trim().max(100),

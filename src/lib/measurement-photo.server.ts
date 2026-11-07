@@ -2,7 +2,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { Output, streamText, NoObjectGeneratedError } from "ai";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "./ai/run-id.server.ts";
-import { photoResultSchema, productFromPhoto } from "./measurement-photo";
+import { photoResultSchema, photoVisionResultSchema, productFromPhoto } from "./measurement-photo";
 import type { ImportedProduct } from "./product-import";
 import { parseIkeaProduct } from "./product-import";
 
@@ -38,13 +38,13 @@ export async function readMeasurementPhotos(data: { images: string[]; productIma
         { type: "text", text: "Also describe visible silhouette details: armWidth is each arm's width divided by overall width (ignored for armless seating); backCushions counts back cushions independently of seat count; backSlope is backward top offset divided by overall depth (0 upright, at most 0.2); seatCushion is bench for one continuous cushion or split for separate cushions; legShape is block, tapered, outward splayed, or sled for connected metal rails. regularDepth is normal non-chaise section depth divided by overall depth, including backrest; use 1 without a chaise. Chaise left/right is always from a person facing the furniture, not seated on it. Distinguish tufted button/seam backs from plain split backs. Describe only visibly supported traits; omit uncertain optional details. These fields describe appearance only and must NEVER populate measurements." },
         ...data.productImages.map((image) => ({ type: "image" as const, image: new URL(image) })),
       ] }],
-      output: Output.object({ schema: photoResultSchema }),
+      output: Output.object({ schema: photoVisionResultSchema }),
       providerOptions: { openai: { forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", store: false, include: ["reasoning.encrypted_content"] } },
     });
     const output = await result.output;
     const runId = run.getRunId();
     if (runId) setResponseHeader("X-Lovable-AIG-Run-ID", runId);
-    const product = productFromPhoto(output);
+    const product = productFromPhoto(photoResultSchema.parse({ ...output, appearance: Object.fromEntries(Object.entries(output.appearance).filter(([, value]) => value !== null)) }));
     if (linkedProduct) {
       for (const key of ["w", "d", "h"] as const) if (!product[key]) product[key] = linkedProduct[key];
       product.label = data.name || linkedProduct.label;
