@@ -52,21 +52,24 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
     return Math.round(meters * 1_000_000) / 1_000_000;
   };
   const colors = { orange: "#ed702b", white: "#eeeae3", black: "#343432", wood: "#9d896f", green: "#7a8b6f", gray: "#91918c" };
+  const { armWidth, backCushions, backSlope, regularDepth, seatCushion, legShape, ...coreAppearance } = result.appearance;
   return {
     label: result.label.trim().slice(0, 100) || "Furniture from photo",
     type: result.type, color: /^#[0-9a-f]{6}$/i.test(result.bodyColor) ? result.bodyColor : colors[result.color],
     appearance: {
-      ...result.appearance,
+      ...coreAppearance,
+      ...(seatCushion !== undefined ? { seatCushion } : {}),
+      ...(legShape !== undefined ? { legShape } : {}),
       seats: Math.max(1, Math.min(5, Math.round(result.appearance.seats))),
       legHeight: Math.max(0, Math.min(0.3, result.appearance.legHeight)),
       seatHeight: Math.max(0.25, Math.min(0.65, result.appearance.seatHeight)),
       armHeight: Math.max(0.35, Math.min(0.85, result.appearance.armHeight)),
       backDepth: Math.max(0.08, Math.min(0.35, result.appearance.backDepth)),
       softness: Math.max(0.01, Math.min(0.15, result.appearance.softness)),
-      ...(result.appearance.armWidth !== undefined ? { armWidth: Math.max(0.03, Math.min(0.2, result.appearance.armWidth)) } : {}),
-      ...(result.appearance.backCushions !== undefined ? { backCushions: Math.max(1, Math.min(5, Math.round(result.appearance.backCushions))) } : {}),
-      ...(result.appearance.backSlope !== undefined ? { backSlope: Math.max(0, Math.min(0.2, result.appearance.backSlope)) } : {}),
-      ...(result.appearance.regularDepth !== undefined ? { regularDepth: Math.max(0.35, Math.min(1, result.appearance.regularDepth)) } : {}),
+      ...(armWidth !== undefined ? { armWidth: Math.max(0.03, Math.min(0.2, armWidth)) } : {}),
+      ...(backCushions !== undefined ? { backCushions: Math.max(1, Math.min(5, Math.round(backCushions))) } : {}),
+      ...(backSlope !== undefined ? { backSlope: Math.max(0, Math.min(0.2, backSlope)) } : {}),
+      ...(regularDepth !== undefined ? { regularDepth: Math.max(0.35, Math.min(1, regularDepth)) } : {}),
     },
     w: read("width"), d: read("depth"), h: read("height"),
     sourceUrl: "", missingDimensions,

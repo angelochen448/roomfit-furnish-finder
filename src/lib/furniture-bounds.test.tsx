@@ -69,7 +69,9 @@ describe.each(variants)("sofa bounds: %s", (_, settings) => {
 describe("imported seating silhouette", () => {
   const item: PlacedItem = { id: "test", type: "sofa", label: "Test sofa", x: 0, z: 0, rot: 0, w: 2.4, d: 1.5, h: 0.85, color: "#889988" };
   it("renders rolled arms, six tuft panels, a bench cushion and tapered legs", async () => {
-    const { group, cleanup } = await renderSofa({ ...item, appearance: variants[4]?.[1] });
+    const settings = variants[4]?.[1];
+    if (!settings) throw new Error("Missing classic fixture");
+    const { group, cleanup } = await renderSofa({ ...item, appearance: settings });
     const roll = group.getObjectByName("arm-roll1");
     expect(roll instanceof Mesh && roll.geometry.type).toBe("CylinderGeometry");
     let tufts = 0;
@@ -82,7 +84,9 @@ describe("imported seating silhouette", () => {
     cleanup();
   });
   it("makes a front-view left chaise base and cushion longer, with independent back cushions and sled rails", async () => {
-    const { group, cleanup } = await renderSofa({ ...item, appearance: variants[5]?.[1] });
+    const settings = variants[5]?.[1];
+    if (!settings) throw new Error("Missing chaise fixture");
+    const { group, cleanup } = await renderSofa({ ...item, appearance: settings });
     group.updateWorldMatrix(true, true);
     const left = group.getObjectByName("base2"), right = group.getObjectByName("base0");
     if (!left || !right) throw new Error("Missing chaise bases");
