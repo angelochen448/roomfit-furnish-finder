@@ -1,6 +1,6 @@
 # Optional measurement diagrams
-- [ ] Add manual overall dimensions before matching and preserve edits after analysis.
-- [ ] Allow photo-only matching and verify placement with manual dimensions.
+- [x] Add manual overall dimensions before matching and preserve edits after analysis.
+- [x] Allow photo-only matching; verified real desk import and placement at manually edited 160 × 80 × 79 cm on desktop/mobile; 27 tests passed.
 
 # Part-based rigid furniture
 - [x] Extract and validate reusable positioned parts from photos, preserving seating and confirmed dimensions.
