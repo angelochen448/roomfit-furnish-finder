@@ -1,6 +1,6 @@
 // Pure room-planning rules: no React, no three.js. Units are meters.
 
-export type FurnitureType = "sofa" | "armchair" | "coffeeTable" | "bed" | "desk" | "lamp" | "rug" | "shelf" | "cabinet";
+export type FurnitureType = "sofa" | "armchair" | "chair" | "stool" | "table" | "coffeeTable" | "bed" | "desk" | "lamp" | "rug" | "shelf" | "cabinet";
 
 export interface CatalogEntry {
   type: FurnitureType;
@@ -15,7 +15,16 @@ export interface CatalogEntry {
 
 /** Optional image-supported structural traits; all thicknesses are visual fractions. */
 export interface StructuralAppearance {
-  supports?: "fourLegs" | "pedestal" | "panels";
+  supports?: "fourLegs" | "pedestal" | "panels" | "trestle" | "sled";
+  topShape?: "rectangular" | "round" | "oval";
+  legStyle?: "straight" | "tapered" | "splayed";
+  seatShape?: "rectangular" | "round" | "oval";
+  backStyle?: "none" | "solid" | "slatted";
+  seatLevel?: number;
+  footrest?: boolean;
+  headboard?: "none" | "solid" | "slatted" | "upholstered";
+  mattressHeight?: number;
+  drawers?: number;
   thickness?: number;
   legThickness?: number;
   panels?: number;
@@ -50,6 +59,9 @@ export interface SeatingAppearance {
 }
 
 export const CATALOG: CatalogEntry[] = [
+  { type: "chair", label: "Chair", w: 0.48, d: 0.52, h: 0.85, color: "#9d896f", structure: { backStyle: "slatted", seatLevel: 0.53 } },
+  { type: "stool", label: "Stool", w: 0.4, d: 0.4, h: 0.65, color: "#9d896f", structure: { seatShape: "round", backStyle: "none", legStyle: "splayed", footrest: true } },
+  { type: "table", label: "Table", w: 1.2, d: 1.2, h: 0.75, color: "#9d896f", structure: { topShape: "round", supports: "pedestal" } },
   { type: "sofa", label: "Sofa", w: 2.1, d: 0.9, h: 0.85, color: "#7a8b6f" },
   { type: "armchair", label: "Armchair", w: 0.85, d: 0.85, h: 0.9, color: "#c26a4a" },
   { type: "coffeeTable", label: "Coffee table", w: 1.1, d: 0.6, h: 0.42, color: "#8a5a3b" },
