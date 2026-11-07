@@ -7,6 +7,15 @@ const frame = { width: 1000, height: 800, imageWidth: 1000, imageHeight: 800 };
 const area = { id: "0", label: "Existing sofa", x: 0, z: 0, w: 2, d: 1 };
 const item = { type: "chair" as const, label: "Chair", color: "#123456", w: 0.5, d: 0.5, h: 0.8 };
 describe("AI occupied floor rules", () => {
+  it("aligns a visible rear floor edge without pretending to infer scale", () => {
+    const result = calibrateFloor({ floor: null, rearEdge: { left: { x: 0.2, y: 0.6 }, right: { x: 0.8, y: 0.6 }, confidence: 0.8 }, furniture: [], notes: "" }, room, frame, rig);
+    expect(result?.rig).toEqual(rig);
+    expect(result?.alignment.y).not.toBe(0);
+  });
+  it("retains unlocated furniture as unresolved instead of silently permitting placement", () => {
+    const analysis = normalizeRoomAnalysis({ floor: null, furniture: [{ label: "Sofa", confidence: 0.9, footprint: [] }], notes: "" });
+    expect(occupiedAreas(analysis, rig, { x: 0, y: 0 }, frame).unresolved).toBe(1);
+  });
   it("blocks placement into existing furniture", () => {
     expect(occupiedBy({ ...item, x: 0.5, z: 0, rot: 0 }, [area])?.label).toBe("Existing sofa");
     expect(occupiedBy({ ...item, x: 1.6, z: 0, rot: 0 }, [area])).toBeUndefined();
