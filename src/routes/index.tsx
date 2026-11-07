@@ -1,23 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RoomPlanner } from "@/components/room/RoomPlanner";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Nestwise — Room studio" },
+      { name: "description", content: "Upload a photo of your room and place true-to-size 3D furniture to see what fits." },
+      { property: "og:title", content: "Nestwise — Room studio" },
+      { property: "og:description", content: "Place true-to-size 3D furniture in a photo of your room." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: RoomPlanner,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
