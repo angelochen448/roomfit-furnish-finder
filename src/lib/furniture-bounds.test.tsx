@@ -70,7 +70,8 @@ describe("imported seating silhouette", () => {
   const item: PlacedItem = { id: "test", type: "sofa", label: "Test sofa", x: 0, z: 0, rot: 0, w: 2.4, d: 1.5, h: 0.85, color: "#889988" };
   it("renders rolled arms, six tuft panels, a bench cushion and tapered legs", async () => {
     const { group, cleanup } = await renderSofa({ ...item, appearance: variants[4]?.[1] });
-    expect(group.getObjectByName("arm-roll1")?.geometry.type).toBe("CylinderGeometry");
+    const roll = group.getObjectByName("arm-roll1");
+    expect(roll instanceof Mesh && roll.geometry.type).toBe("CylinderGeometry");
     let tufts = 0;
     group.traverse((o) => { if (o.name.startsWith("tuft")) tufts++; });
     expect(tufts).toBe(6);
