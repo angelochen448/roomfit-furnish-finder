@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { analyzeRoom } from "@/lib/room-photo.functions";
 import type { RoomAnalysis } from "@/lib/room-photo";
 
-export function RoomPhotoAnalysis({ photo, analysis, onAnalysis, onAlign, onClear }: {
+export function RoomPhotoAnalysis({ photo, analysis, onAnalysis, onReview, onAlign, onClear }: {
   photo: string; analysis: RoomAnalysis | null; onAnalysis: (analysis: RoomAnalysis) => void;
-  onAlign: () => void; onClear: () => void;
+  onReview: (analysis: RoomAnalysis) => void; onAlign: () => void; onClear: () => void;
 }) {
   const analyze = useServerFn(analyzeRoom);
   const active = useRef<AbortController | null>(null);
@@ -42,7 +42,7 @@ export function RoomPhotoAnalysis({ photo, analysis, onAnalysis, onAlign, onClea
       {(analysis.floor || analysis.rearEdge || analysis.view === "overhead" || analysis.furniture.some(o => o.footprint.length >= 3)) && <Button className="w-full" variant="outline" onClick={onAlign}><RotateCcw className="size-4" />Apply floor alignment</Button>}
       {analysis.furniture.map((o, index) => <div key={index} className="flex items-center justify-between gap-2 border-b border-border py-2">
         <span className="text-xs break-words">{o.label} · {Math.round(o.confidence * 100)}%</span>
-        <Button variant="ghost" size="icon" className="shrink-0" aria-label={`Remove detection ${o.label}`} title="Remove incorrect detection" onClick={() => onAnalysis({ ...analysis, furniture: analysis.furniture.filter((_, i) => i !== index) })}><X className="size-4" /></Button>
+        <Button variant="ghost" size="icon" className="shrink-0" aria-label={`Remove detection ${o.label}`} title="Remove incorrect detection" onClick={() => onReview({ ...analysis, furniture: analysis.furniture.filter((_, i) => i !== index) })}><X className="size-4" /></Button>
       </div>)}
       <Button variant="ghost" className="w-full" onClick={onClear}><X className="size-4" />Clear detections</Button>
     </div>}

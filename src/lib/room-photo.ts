@@ -107,18 +107,18 @@ export function calibrateFloor(analysis: RoomAnalysis, room: Room, frame: PhotoF
   return { rig: { height, distance, yaw, pitch, fov }, alignment: { x, y }, error };
 }
 export function occupiedAreas(analysis: RoomAnalysis | null, rig: RoomCamera, alignment: ImagePoint, frame: PhotoFrame) {
-  if (!analysis) return { areas: [] as OccupiedArea[], unresolved: 0 };
+  if (!analysis) return { areas: [] as OccupiedArea[], unresolved: 0, unresolvedLabels: [] as string[] };
   const camera = roomCamera(rig, alignment, frame);
-  const areas: OccupiedArea[] = []; let unresolved = 0;
+  const areas: OccupiedArea[] = []; const unresolvedLabels: string[] = [];
   analysis.furniture.forEach((o, i) => {
-    if (o.footprint.length < 3) { unresolved++; return; }
+    if (o.footprint.length < 3) { unresolvedLabels.push(o.label); return; }
     const points = o.footprint.map(p => imageFloorPoint(p, camera, frame));
-    if (points.some(p => !p)) { unresolved++; return; }
+    if (points.some(p => !p)) { unresolvedLabels.push(o.label); return; }
     const xs = points.flatMap(p => p ? [p.x] : []), zs = points.flatMap(p => p ? [p.z] : []);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
     areas.push({ id: String(i), label: o.label, x: (minX + maxX) / 2, z: (minZ + maxZ) / 2, w: Math.max(0.1, maxX - minX) + 0.1, d: Math.max(0.1, maxZ - minZ) + 0.1 });
   });
-  return { areas, unresolved };
+  return { areas, unresolved: unresolvedLabels.length, unresolvedLabels };
 }
 export function occupiedBy(item: Pick<PlacedItem, "x" | "z" | "w" | "d" | "rot">, areas: OccupiedArea[]) {
   const size = footprint(item);
