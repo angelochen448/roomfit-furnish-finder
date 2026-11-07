@@ -81,11 +81,11 @@ export const photoVisionResultSchema = photoResultSchema.extend({
   }).nullable(),
 });
 export const photoInputSchema = z.object({
-  images: z.array(z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)).min(1).max(4),
+  images: z.array(z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)).max(4),
   name: z.string().trim().max(100),
   productImages: z.array(z.string().max(12_000_000).regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/)).max(4).default([]),
   url: z.union([z.literal(""), ikeaUrlSchema]).default(""),
-});
+}).refine(data => data.images.length + data.productImages.length > 0, "Upload a product photo or measurement diagram.");
 
 export function productFromPhoto(result: PhotoResult): ImportedProduct {
   const missingDimensions: string[] = [];

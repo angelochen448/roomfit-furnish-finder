@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { productFromPhoto, type PhotoResult } from "./measurement-photo";
+import { photoInputSchema, productFromPhoto, type PhotoResult } from "./measurement-photo";
 
 const sample: PhotoResult = {
   label: "Orange chair-bed", type: "armchair", color: "orange", notes: "",
@@ -10,6 +10,12 @@ const sample: PhotoResult = {
   height: { value: 75, unit: "cm", kind: "overall", evidence: "Overall height 75 cm" },
 };
 describe("measurement photos", () => {
+  it("allows product photos without a measurement diagram", () => {
+    expect(photoInputSchema.safeParse({ images: [], productImages: ["data:image/png;base64,YQ=="], name: "" }).success).toBe(true);
+  });
+  it("still requires a photo to analyze", () => {
+    expect(photoInputSchema.safeParse({ images: [], productImages: [], name: "" }).success).toBe(false);
+  });
   it.each(["sofa", "bed", "desk", "chair", "table", "stool"] as const)("preserves %s classification and confirmed dimensions", type => {
     expect(productFromPhoto({ ...sample, type })).toMatchObject({ type, w: 0.8, d: 0.9, h: 0.75 });
   });
