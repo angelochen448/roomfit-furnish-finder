@@ -6,6 +6,8 @@ import { Box3, Group, Mesh, Vector3 } from "three";
 import { FurnitureMesh } from "@/components/room/Furniture";
 import type { PlacedItem, SeatingAppearance } from "./room";
 
+extend(THREE);
+
 const appearance: SeatingAppearance = { arms: "wide", seats: 3, back: "split", legs: "wood", legHeight: 0.15, seatHeight: 0.5, armHeight: 0.7, backDepth: 0.2, softness: 0.08, chaise: "none" };
 const dimensions = [[2.1, 0.9, 0.85], [1.4, 0.65, 0.6], [3.2, 1.5, 1.2], [0.8, 0.5, 0.4]];
 const variants: Array<[string, SeatingAppearance | undefined]> = [
@@ -19,7 +21,7 @@ async function renderSofa(item: PlacedItem) {
   const root = createRoot(canvas);
   // Exercise the actual R3F/Drei geometry without requiring a GPU.
   const renderer = { render: () => {}, setSize: () => {}, setPixelRatio: () => {}, dispose: () => {}, forceContextLoss: () => {}, renderLists: { dispose: () => {} }, xr: { enabled: false, isPresenting: false, addEventListener: () => {}, removeEventListener: () => {} }, shadowMap: {}, domElement: canvas };
-  await root.configure({ gl: renderer as never, frameloop: "never", events: undefined, size: { width: 640, height: 480, top: 0, left: 0 } });
+  await root.configure({ gl: renderer as never, frameloop: "never", size: { width: 640, height: 480, top: 0, left: 0 } });
   const group = await new Promise<Group>((resolve) => {
     function Probe() {
       const parent = new Group();
@@ -33,7 +35,7 @@ async function renderSofa(item: PlacedItem) {
 
 describe.each(variants)("sofa bounds: %s", (_, settings) => {
   it.each(dimensions)("complete geometry equals %s × %s × %s m and every part stays inside", async (w, d, h) => {
-    const item: PlacedItem = { id: "imported-sofa", type: "sofa", label: "Imported sofa", x: 0, z: 0, rot: 0, w, d, h, color: "#889988", appearance: settings };
+    const item: PlacedItem = { id: "imported-sofa", type: "sofa", label: "Imported sofa", x: 0, z: 0, rot: 0, w, d, h, color: "#889988", ...(settings ? { appearance: settings } : {}) };
     const { group, cleanup } = await renderSofa(item);
     group.updateWorldMatrix(true, true);
     const bounds = new Box3().setFromObject(group, true);
