@@ -22,3 +22,9 @@
 - [x] Extend photo appearance parameters without changing measurement extraction or import UI.
 - [x] Improve arms, cushions, backs, chaise bases and legs; normalize imported armchairs too.
 - [x] Verify classic rolled/tufted and modern chaise sofa rendering, 24 sofa bounds cases, imported armchair bounds, and real IKEA chair photo import (80 × 84 × 75 cm); 46 tests passed.
+
+# Furniture realism
+- [x] Expand validated photo traits and targeted seating/structural geometry without changing the import UI or dimensions.
+- [x] Improve contact shadows and material lighting without changing camera or dragging.
+- [x] Verify described charcoal bench sofa and contrasting seating, other categories, exact bounds, and real photo import/control regressions (72 tests, screenshots, real IKEA photo import at 80 × 84 × 75 cm).
+- [ ] Compare against the actual gray-sofa photograph — blocked: no sofa reference image was attached; only the written description and an older GitHub screenshot are available.

@@ -10,6 +10,17 @@ export interface CatalogEntry {
   h: number; // height (y)
   color: string;
   appearance?: SeatingAppearance;
+  structure?: StructuralAppearance;
+}
+
+/** Optional image-supported structural traits; all thicknesses are visual fractions. */
+export interface StructuralAppearance {
+  supports?: "fourLegs" | "pedestal" | "panels";
+  thickness?: number;
+  legThickness?: number;
+  panels?: number;
+  openBack?: boolean;
+  material?: "wood" | "metal" | "glass" | "painted";
 }
 
 /** Visual proportions only; confirmed overall dimensions remain the fit source of truth. */
@@ -30,6 +41,12 @@ export interface SeatingAppearance {
   seatCushion?: "bench" | "split";
   legShape?: "block" | "tapered" | "splayed" | "sled";
   regularDepth?: number;
+  silhouette?: "boxy" | "rounded" | "plush";
+  armProfile?: "rectangular" | "rounded" | "rolled" | "sloped";
+  cushionHeight?: number;
+  backHeight?: number;
+  legThickness?: number;
+  upholstery?: "woven" | "velvet" | "leather";
 }
 
 export const CATALOG: CatalogEntry[] = [
@@ -55,6 +72,7 @@ export interface PlacedItem {
   h: number;
   color: string;
   appearance?: SeatingAppearance;
+  structure?: StructuralAppearance;
 }
 
 export interface Room {

@@ -10,6 +10,12 @@ const sample: PhotoResult = {
   height: { value: 75, unit: "cm", kind: "overall", evidence: "Overall height 75 cm" },
 };
 describe("measurement photos", () => {
+  it("clamps new component fractions without overriding diagram dimensions", () => {
+    expect(productFromPhoto({ ...sample, appearance: { ...sample.appearance, cushionHeight: 2, backHeight: -1, legThickness: 2, silhouette: "boxy", armProfile: "rectangular", upholstery: "woven" } })).toMatchObject({ w: 0.8, d: 0.9, h: 0.75, appearance: { cushionHeight: 0.24, backHeight: 0.3, legThickness: 0.08, silhouette: "boxy", armProfile: "rectangular", upholstery: "woven" } });
+  });
+  it("carries bounded structural traits without deriving measurements from them", () => {
+    expect(productFromPhoto({ ...sample, type: "cabinet", structure: { supports: "panels", thickness: 9, legThickness: 0, panels: 20, material: "wood", openBack: false } })).toMatchObject({ w: 0.8, d: 0.9, h: 0.75, structure: { thickness: 0.2, legThickness: 0.015, panels: 8 } });
+  });
   it("preserves silhouette details without using them as measured dimensions", () => {
     const appearance = { ...sample.appearance, armWidth: 0.06, backCushions: 2, backSlope: 0.1, regularDepth: 0.55, legShape: "sled" as const, seatCushion: "bench" as const };
     expect(productFromPhoto({ ...sample, appearance })).toMatchObject({ appearance, w: 0.8, d: 0.9, h: 0.75 });

@@ -39,3 +39,5 @@ use the editor.
 - Keep photo-derived seating appearance as normalized visual proportions carried with placed items; render rounded seating from those proportions within confirmed dimensions, never use inferred proportions as fit measurements.
 - Normalize sofa and appearance-driven armchair mesh bounds in local coordinates after geometry layout to confirmed dimensions and floor origin; this keeps actual rendered extents equal to fit dimensions regardless of appearance or room transforms.
 - Keep optional silhouette details backward-compatible with existing appearance records; photo-derived arm widths, cushion counts, back slopes and leg shapes are visual parameters, never measurement evidence.
+- Carry optional seating material/component traits and non-seating structural fractions through the existing catalog/placed-item records; defaults preserve older imports and confirmed dimensions always remain authoritative.
+- Use deterministic local upholstery microtextures and a low-resolution live contact-shadow pass; avoid external asset dependencies and keep shadows responsive to dragging.

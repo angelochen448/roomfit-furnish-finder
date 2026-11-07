@@ -1,5 +1,5 @@
 import { Canvas, useThree, type ThreeEvent } from "@react-three/fiber";
-import { Environment, Grid, Lightformer, Line } from "@react-three/drei";
+import { ContactShadows, Environment, Grid, Lightformer, Line } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { clampToRoom, itemProblems, footprint, type PlacedItem, type Room } from "@/lib/room";
@@ -105,18 +105,21 @@ export function RoomScene({ room, items, selectedId, showGrid, rig, onSelect, on
       }}
     >
       <Rig rig={rig} />
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[3, 6, 4]} intensity={1.6} castShadow shadow-mapSize={[2048, 2048]}
+      <ambientLight intensity={0.65} />
+      <directionalLight position={[3, 6, 4]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} shadow-normalBias={0.025} shadow-bias={-0.0001}
         shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} />
       <Environment resolution={64}>
         <Lightformer intensity={2} position={[0, 5, 0]} scale={[10, 10, 1]} rotation-x={Math.PI / 2} />
         <Lightformer intensity={1} color="#ffe2c4" position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} />
       </Environment>
 
+      {/* Low-resolution, live contact pass follows placement, rotation and dragging. */}
+      {items.length > 0 && <ContactShadows position={[0, 0.001, 0]} scale={Math.max(room.width, room.depth) + 4} opacity={0.4} blur={1.8} far={0.65} resolution={256} depthWrite={false} />}
+
       {/* Invisible floor that only catches shadows so furniture sits in the photo. */}
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
         <planeGeometry args={[room.width + 4, room.depth + 4]} />
-        <shadowMaterial opacity={0.35} />
+        <shadowMaterial opacity={0.22} />
       </mesh>
 
       {showGrid && (
