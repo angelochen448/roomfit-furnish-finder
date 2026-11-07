@@ -1,6 +1,7 @@
 import { createElement, useLayoutEffect } from "react";
 import { describe, expect, it } from "vitest";
-import { createRoot } from "@react-three/fiber";
+import { createRoot, extend } from "@react-three/fiber";
+import * as THREE from "three";
 import { Box3, Group, Mesh, Vector3 } from "three";
 import { FurnitureMesh } from "@/components/room/Furniture";
 import type { PlacedItem, SeatingAppearance } from "./room";
