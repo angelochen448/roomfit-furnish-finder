@@ -90,7 +90,7 @@ export function RoomPlanner() {
 
   const rigSlider = (key: keyof CameraRig, label: string, min: number, max: number, step: number, unit: string) => (
     <div className="space-y-1.5">
-      <div className="flex justify-between text-xs"><span className="text-muted-foreground">{label}</span><span className="font-mono">{rig[key]}{unit}</span></div>
+      <div className="flex justify-between text-xs"><span className="text-muted-foreground">{label}</span><span className="font-mono">{Math.round(rig[key] * 100) / 100}{unit}</span></div>
       <Slider value={[rig[key]]} min={min} max={max} step={step} onValueChange={([v]) => setRig((r) => ({ ...r, [key]: v }))} />
     </div>
   );
@@ -140,10 +140,10 @@ export function RoomPlanner() {
           </section>
         </aside>
 
-        <main className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
-          <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" />
+        <main ref={scene} data-occupied-count={occupied.areas.length} className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
+          <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" onLoad={event => { const img = event.currentTarget; setFrame(f => ({ ...f, imageWidth: img.naturalWidth, imageHeight: img.naturalHeight })); }} />
           <div className="absolute inset-0"><RoomScene room={room} items={items} selectedId={selectedId} showGrid={showGrid}
-            rig={rig} alignment={alignment} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
+            rig={rig} alignment={alignment} occupied={occupied.areas} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
           {movingGrid && <div aria-label="Drag floor grid" data-alignment-x={alignment.x} data-alignment-y={alignment.y} className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
             onPointerDown={(event) => {
               if (gridDrag.current || event.button !== 0) return;
@@ -171,13 +171,14 @@ export function RoomPlanner() {
               </div>
             )}
           </div>
+          {placementError && <p role="alert" className="absolute left-4 right-4 top-16 border border-border bg-background p-3 text-xs text-destructive break-words">{placementError}</p>}
 
           {selected && !movingGrid && (
             <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
                 <div className="font-mono text-xs text-muted-foreground">{[selected.w, selected.d, selected.h].map((v) => v.toFixed(3)).join(" × ")} m</div>
-                {itemProblems(selected, items, room).map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
+                {allProblems.find(p => p.i.id === selected.id)?.p.map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
               </div>
               <input type="color" value={selected.color} onChange={(e) => patch(selected.id, { color: e.target.value })}
                 className="size-8 cursor-pointer rounded border border-border bg-transparent" aria-label="Color" />
@@ -196,6 +197,8 @@ export function RoomPlanner() {
                 <input type="file" accept="image/*" aria-label="Choose room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             </Button>
+            <RoomPhotoAnalysis photo={photo} analysis={analysis} onAnalysis={result => { setAnalysis(result); if (!analysis) alignFloor(result); }} onAlign={() => { if (analysis) alignFloor(analysis); }} onClear={() => { setAnalysis(null); setPlacementError(null); }} />
+            {occupied.unresolved > 0 && <p role="status" className="text-xs text-destructive">{occupied.unresolved} occupied area{occupied.unresolved === 1 ? "" : "s"} could not be located. Placement paused until reviewed.</p>}
           </section>
           <ProductLinkImport onAdd={add} />
           <h2 className="eyebrow mb-3">Add furniture</h2>
