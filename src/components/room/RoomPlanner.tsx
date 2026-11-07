@@ -126,7 +126,7 @@ export function RoomPlanner() {
             <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
-                <div className="font-mono text-xs text-muted-foreground">{selected.w}×{selected.d}×{selected.h} m</div>
+                <div className="font-mono text-xs text-muted-foreground">{[selected.w, selected.d, selected.h].map((v) => v.toFixed(3)).join(" × ")} m</div>
                 {itemProblems(selected, items, room).map((p) => <div key={p} className="text-xs text-destructive">{p}</div>)}
               </div>
               <input type="color" value={selected.color} onChange={(e) => patch(selected.id, { color: e.target.value })}
