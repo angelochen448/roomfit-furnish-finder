@@ -39,7 +39,11 @@ export function ShapeFurniture({ item }: { item: PlacedItem }) {
     return <group>
       {box("shape-bed-frame", [0, (bedTop - mattress) / 2, 0], [1, bedTop - mattress, 1])}
       {box("shape-mattress", [0, bedTop - mattress / 2, 0.025], [0.96, mattress, 0.93])}
-      {headboard !== "none" && box("shape-headboard", [0, 0.7, -0.47], [1, 0.6, 0.06])}
+      {headboard !== "none" && headboard !== "slatted" && box("shape-headboard", [0, 0.7, -0.47], [1, 0.6, 0.06])}
+      {headboard === "slatted" && <group>
+        {[-1, 1].map(x => box(`headboard-post-${x}`, [x * 0.47, 0.7, -0.47], [0.06, 0.6, 0.06]))}
+        {box("headboard-top-rail", [0, 0.97, -0.47], [1, 0.06, 0.06])}
+      </group>}
       {headboard === "slatted" && Array.from({ length: 6 }, (_, i) => box(`headboard-slat-${i}`, [-0.42 + i * 0.168, 0.76, -0.425], [0.055, 0.43, 0.025]))}
       {headboard === "upholstered" && Array.from({ length: 4 }, (_, i) => box(`headboard-pad-${i}`, [-0.375 + i * 0.25, 0.73, -0.42], [0.24, 0.5, 0.06]))}
     </group>;
