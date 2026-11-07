@@ -6,7 +6,7 @@ import { Box3, Group, Mesh, Vector3 } from "three";
 import { FurnitureMesh } from "@/components/room/Furniture";
 import type { PlacedItem, SeatingAppearance } from "./room";
 
-extend(THREE);
+extend({ Group: THREE.Group, Mesh: THREE.Mesh, BoxGeometry: THREE.BoxGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry, MeshStandardMaterial: THREE.MeshStandardMaterial });
 
 const appearance: SeatingAppearance = { arms: "wide", seats: 3, back: "split", legs: "wood", legHeight: 0.15, seatHeight: 0.5, armHeight: 0.7, backDepth: 0.2, softness: 0.08, chaise: "none" };
 const dimensions = [[2.1, 0.9, 0.85], [1.4, 0.65, 0.6], [3.2, 1.5, 1.2], [0.8, 0.5, 0.4]];
@@ -51,9 +51,11 @@ describe.each(variants)("sofa bounds: %s", (_, settings) => {
       if (!(object instanceof Mesh)) return;
       meshes++;
       const part = new Box3().setFromObject(object, true);
+      const expectedMin = { x: -w / 2, y: 0, z: -d / 2 };
+      const expectedMax = { x: w / 2, y: h, z: d / 2 };
       for (const axis of ["x", "y", "z"] as const) {
-        expect(part.min[axis]).toBeGreaterThanOrEqual(bounds.min[axis] - 0.00001);
-        expect(part.max[axis]).toBeLessThanOrEqual(bounds.max[axis] + 0.00001);
+        expect(part.min[axis]).toBeGreaterThanOrEqual(expectedMin[axis] - 0.00001);
+        expect(part.max[axis]).toBeLessThanOrEqual(expectedMax[axis] + 0.00001);
       }
     });
     expect(meshes).toBeGreaterThan(3);
