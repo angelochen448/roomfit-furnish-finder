@@ -8,3 +8,8 @@
 - [x] Upload measurement photos and extract explicit overall dimensions.
 - [x] Review dimensions and place an approximate furniture model.
 - [x] Verify photo analysis and placement end to end (IKEA chair diagram: 80 × 84 × 75 cm).
+
+# Product likeness
+- [ ] Combine optional IKEA link, product photos and measurement diagrams in one import.
+- [ ] Extract appearance details and render rounded, product-specific seating approximations at confirmed dimensions.
+- [ ] Verify real product photos, measurements and placement together.
