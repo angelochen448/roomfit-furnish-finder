@@ -8,6 +8,7 @@ import type { ImportedProduct } from "@/lib/product-import";
 import type { CatalogEntry } from "@/lib/room";
 import { importMeasurementPhotos } from "@/lib/measurement-photo.functions";
 import { PhotoUpload, type UploadedPhoto } from "./PhotoUpload";
+import { FurnitureComparison } from "./FurnitureComparison";
 
 export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) => void }) {
   const [pending, setPending] = useState(false);
@@ -34,6 +35,8 @@ export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) =>
     {error && <p role="alert" className="break-words text-xs text-destructive">{error}</p>}
     {product && <div className="space-y-3">
       <div className="text-sm font-medium break-words">{product.label}</div>
+      <FurnitureComparison product={product} photo={productPhotos[0]?.data ?? photos[0]?.data} />
+      {product.assembly?.limitations && <p role="status" className="text-xs text-destructive">{product.assembly.limitations}</p>}
       <div className="text-xs text-muted-foreground">{product.sourceUrl ? "IKEA dimensions" : "Photo measurements · review required"} · approximate shape</div>
       {product.appearance && <p className="text-xs text-muted-foreground">{product.appearance.arms === "none" ? "Armless" : `${product.appearance.arms} arms`} · {product.appearance.seats} seat{product.appearance.seats > 1 ? "s" : ""} · {product.appearance.legs} legs</p>}
       {product.missingDimensions.length > 0 && <p role="status" className="text-xs text-destructive">Overall {product.missingDimensions.join(" / ")} not verified. Enter the measured overall size before adding. Seat depth and bed length are not chair depth.</p>}
@@ -45,7 +48,7 @@ export function ProductLinkImport({ onAdd }: { onAdd: (product: CatalogEntry) =>
         </div>)}
       </div>
       {product.sourceUrl && <a className="text-xs text-primary underline" href={product.sourceUrl} target="_blank" rel="noreferrer">View IKEA product</a>}
-      <Button className="w-full" disabled={[product.w, product.d, product.h].some((v) => !Number.isFinite(v) || v <= 0 || v > 15)} onClick={() => onAdd(product)}><Plus className="size-4" />Add to room</Button>
+      <Button className="w-full" disabled={product.assembly?.supported === false || [product.w, product.d, product.h].some((v) => !Number.isFinite(v) || v <= 0 || v > 15)} onClick={() => onAdd(product)}><Plus className="size-4" />Add to room</Button>
     </div>}
   </section>;
 }

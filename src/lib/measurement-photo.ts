@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ImportedProduct } from "./product-import";
 import { ikeaUrlSchema } from "./product-import";
+import { furnitureAssemblySchema, validateAssembly } from "./furniture-parts";
 
 const measurement = z.object({
   value: z.number().nullable(),
@@ -9,6 +10,7 @@ const measurement = z.object({
   evidence: z.string(),
 });
 export const photoResultSchema = z.object({
+  assembly: furnitureAssemblySchema.optional(),
   label: z.string(),
   type: z.enum(["sofa", "armchair", "chair", "stool", "table", "coffeeTable", "bed", "desk", "lamp", "rug", "shelf", "cabinet"]),
   color: z.enum(["orange", "white", "black", "wood", "green", "gray"]),
@@ -53,6 +55,7 @@ export const photoResultSchema = z.object({
 export type PhotoResult = z.infer<typeof photoResultSchema>;
 // Structured vision output requires every key; null means an uncertain trait.
 export const photoVisionResultSchema = photoResultSchema.extend({
+  assembly: furnitureAssemblySchema.nullable(),
   appearance: photoResultSchema.shape.appearance.extend({
     armWidth: z.number().nullable(), backCushions: z.number().nullable(),
     backSlope: z.number().nullable(), regularDepth: z.number().nullable(),
@@ -98,6 +101,7 @@ export function productFromPhoto(result: PhotoResult): ImportedProduct {
   const colors = { orange: "#ed702b", white: "#eeeae3", black: "#343432", wood: "#9d896f", green: "#7a8b6f", gray: "#91918c" };
   const { armWidth, backCushions, backSlope, regularDepth, seatCushion, legShape, cushionHeight, backHeight, legThickness, silhouette, armProfile, upholstery, ...coreAppearance } = result.appearance;
   return {
+    ...(result.assembly ? { assembly: validateAssembly(result.assembly) } : {}),
     label: result.label.trim().slice(0, 100) || "Furniture from photo",
     type: result.type, color: /^#[0-9a-f]{6}$/i.test(result.bodyColor) ? result.bodyColor : colors[result.color],
     ...(result.structure ? { structure: {

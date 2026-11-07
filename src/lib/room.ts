@@ -1,4 +1,5 @@
 // Pure room-planning rules: no React, no three.js. Units are meters.
+import type { FurnitureAssembly } from "./furniture-parts";
 
 export type FurnitureType = "sofa" | "armchair" | "chair" | "stool" | "table" | "coffeeTable" | "bed" | "desk" | "lamp" | "rug" | "shelf" | "cabinet";
 
@@ -11,6 +12,7 @@ export interface CatalogEntry {
   color: string;
   appearance?: SeatingAppearance;
   structure?: StructuralAppearance;
+  assembly?: FurnitureAssembly;
 }
 
 /** Optional image-supported structural traits; all thicknesses are visual fractions. */
@@ -85,6 +87,7 @@ export interface PlacedItem {
   color: string;
   appearance?: SeatingAppearance;
   structure?: StructuralAppearance;
+  assembly?: FurnitureAssembly;
 }
 
 export interface Room {
