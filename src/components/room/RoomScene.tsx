@@ -19,12 +19,13 @@ interface Props {
   selectedId: string | null;
   showGrid: boolean;
   rig: CameraRig;
+  alignment: { x: number; y: number };
   onSelect: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
 }
 
-function Rig({ rig }: { rig: CameraRig }) {
-  const { camera } = useThree();
+function Rig({ rig, alignment }: { rig: CameraRig; alignment: { x: number; y: number } }) {
+  const { camera, size } = useThree();
   useEffect(() => {
     const cam = camera as THREE.PerspectiveCamera;
     const yaw = THREE.MathUtils.degToRad(rig.yaw);
@@ -33,8 +34,9 @@ function Rig({ rig }: { rig: CameraRig }) {
     cam.position.set(Math.sin(yaw) * rig.distance, rig.height, Math.cos(yaw) * rig.distance);
     cam.rotation.order = "YXZ";
     cam.rotation.set(-pitch, yaw, 0);
+    cam.setViewOffset(size.width, size.height, -alignment.x * size.width, -alignment.y * size.height, size.width, size.height);
     cam.updateProjectionMatrix();
-  }, [camera, rig]);
+  }, [camera, rig, alignment, size.width, size.height]);
   return null;
 }
 
@@ -86,7 +88,7 @@ function Item({ item, problems, selected, room, onSelect, onMove }: {
   );
 }
 
-export function RoomScene({ room, items, selectedId, showGrid, rig, onSelect, onMove }: Props) {
+export function RoomScene({ room, items, selectedId, showGrid, rig, alignment, onSelect, onMove }: Props) {
   const problems = useMemo(
     () => Object.fromEntries(items.map((i) => [i.id, itemProblems(i, items, room)])),
     [items, room],
@@ -104,7 +106,7 @@ export function RoomScene({ room, items, selectedId, showGrid, rig, onSelect, on
         gl.domElement.parentElement?.parentElement?.setAttribute("data-scene-ready", "true");
       }}
     >
-      <Rig rig={rig} />
+      <Rig rig={rig} alignment={alignment} />
       <ambientLight intensity={0.65} />
       <directionalLight position={[3, 6, 4]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} shadow-normalBias={0.025} shadow-bias={-0.0001}
         shadow-camera-left={-8} shadow-camera-right={8} shadow-camera-top={8} shadow-camera-bottom={-8} />

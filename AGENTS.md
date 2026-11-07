@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Room studio
+- Pan photo alignment with a normalized camera view offset shared by the whole scene; this moves grid and furniture together without changing room coordinates or fit rules.
 - Merge manual overall dimensions in the browser-safe manual-dimensions helper after photo analysis; user edits take precedence while missing dimensions still block placement.
 - Keep room geometry and fit rules in the browser-safe room module, with Three.js rendering in the room components; this keeps placement logic testable independently of WebGL.
 - Treat photo alignment as manual camera calibration, not automatic room reconstruction; a single uploaded photo does not supply measured 3D geometry.

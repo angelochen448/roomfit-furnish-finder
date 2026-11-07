@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { RotateCw, Trash2, Upload, Grid3x3, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Move, RotateCw, Trash2, Upload, Grid3x3, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,9 @@ export function RoomPlanner() {
   const [items, setItems] = useState<PlacedItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(true);
+  const [movingGrid, setMovingGrid] = useState(false);
+  const [alignment, setAlignment] = useState({ x: 0, y: 0 });
+  const gridDrag = useRef<{ pointerId: number; x: number; y: number; origin: { x: number; y: number }; width: number; height: number } | null>(null);
 
   useEffect(() => () => {
     if (photo.startsWith("blob:")) URL.revokeObjectURL(photo);
@@ -77,7 +80,8 @@ export function RoomPlanner() {
               <input type="file" accept="image/*" aria-label="Upload room photo" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
             </label>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowGrid((g) => !g)}><Grid3x3 className="size-4" />{showGrid ? "Hide" : "Show"} grid</Button>
+          <Button variant="outline" size="sm" onClick={() => { setShowGrid((g) => !g); setMovingGrid(false); }}><Grid3x3 className="size-4" />{showGrid ? "Hide" : "Show"} grid</Button>
+          <Button variant={movingGrid ? "default" : "outline"} size="sm" aria-pressed={movingGrid} onClick={() => { setMovingGrid(value => !value); setShowGrid(true); }}>{movingGrid ? <CheckCircle2 className="size-4" /> : <Move className="size-4" />}{movingGrid ? "Done moving" : "Move grid"}</Button>
           <Button size="sm" onClick={snapshot}><Download className="size-4" />Save preview</Button>
         </div>
       </header>
@@ -104,14 +108,32 @@ export function RoomPlanner() {
             {rigSlider("pitch", "Tilt down", -10, 60, 1, "°")}
             {rigSlider("yaw", "Turn", -60, 60, 1, "°")}
             {rigSlider("fov", "Lens width", 30, 100, 1, "°")}
-            <Button variant="ghost" size="sm" onClick={() => setRig(DEFAULT_RIG)}>Reset view</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setRig(DEFAULT_RIG); setAlignment({ x: 0, y: 0 }); }}>Reset view</Button>
           </section>
         </aside>
 
         <main className="relative order-1 h-[55dvh] min-h-80 min-w-0 overflow-hidden bg-muted lg:order-2 lg:h-auto lg:flex-1">
           <img src={photo} alt="Your room" className="absolute inset-0 size-full object-cover" />
           <div className="absolute inset-0"><RoomScene room={room} items={items} selectedId={selectedId} showGrid={showGrid}
-            rig={rig} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
+            rig={rig} alignment={alignment} onSelect={setSelectedId} onMove={(id, x, z) => patch(id, { x, z })} /></div>
+          {movingGrid && <div aria-label="Drag floor grid" data-alignment-x={alignment.x} data-alignment-y={alignment.y} className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
+            onPointerDown={(event) => {
+              if (gridDrag.current || event.button !== 0) return;
+              const bounds = event.currentTarget.getBoundingClientRect();
+              gridDrag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, origin: alignment, width: bounds.width, height: bounds.height };
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={(event) => {
+              const drag = gridDrag.current;
+              if (!drag || drag.pointerId !== event.pointerId) return;
+              setAlignment({ x: drag.origin.x + (event.clientX - drag.x) / drag.width, y: drag.origin.y + (event.clientY - drag.y) / drag.height });
+            }}
+            onPointerUp={(event) => {
+              if (gridDrag.current?.pointerId !== event.pointerId) return;
+              gridDrag.current = null;
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }}
+            onPointerCancel={() => { gridDrag.current = null; }} onLostPointerCapture={() => { gridDrag.current = null; }} />}
 
           <div className="pointer-events-none absolute left-4 top-4">
             {items.length > 0 && (
@@ -122,7 +144,7 @@ export function RoomPlanner() {
             )}
           </div>
 
-          {selected && (
+          {selected && !movingGrid && (
             <div className="panel absolute bottom-4 left-1/2 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 px-4 py-3">
               <div>
                 <div className="font-medium">{selected.label}</div>
