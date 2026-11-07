@@ -10,6 +10,13 @@ const sample: PhotoResult = {
   height: { value: 75, unit: "cm", kind: "overall", evidence: "Overall height 75 cm" },
 };
 describe("measurement photos", () => {
+  it("preserves silhouette details without using them as measured dimensions", () => {
+    const appearance = { ...sample.appearance, armWidth: 0.06, backCushions: 2, backSlope: 0.1, regularDepth: 0.55, legShape: "sled" as const, seatCushion: "bench" as const };
+    expect(productFromPhoto({ ...sample, appearance })).toMatchObject({ appearance, w: 0.8, d: 0.9, h: 0.75 });
+  });
+  it("clamps optional visual proportions independently of confirmed dimensions", () => {
+    expect(productFromPhoto({ ...sample, appearance: { ...sample.appearance, armWidth: 9, backCushions: 20, backSlope: -1, regularDepth: 0 } })).toMatchObject({ appearance: { armWidth: 0.2, backCushions: 5, backSlope: 0, regularDepth: 0.35 }, w: 0.8, d: 0.9, h: 0.75 });
+  });
   it("preserves the photographed armless silhouette and upholstery without changing overall dimensions", () => {
     expect(productFromPhoto(sample)).toMatchObject({ color: "#ed702b", appearance: { arms: "none", seats: 1, legs: "hidden" }, w: 0.8, d: 0.9, h: 0.75 });
   });
