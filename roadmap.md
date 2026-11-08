@@ -1,3 +1,6 @@
+# AVIF sofa upload
+- [ ] Verify the supplied AVIF sofa uploads and matches after browser-side JPEG conversion.
+
 # Room-photo warning fixes
 - [x] Reapply alignment on every completed analysis without resetting it on detection review; identify unresolved items and offer alignment restoration.
 - [x] Reproduced three unresolved overhead areas after Reset view; verified Restore floor alignment and reanalysis both clear the pause, followed by successful bookshelf placement. All 14 room-photo tests passed.

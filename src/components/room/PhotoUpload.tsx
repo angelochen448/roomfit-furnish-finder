@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { isSupportedPhoto } from "@/lib/photo-upload";
 
 export interface UploadedPhoto { name: string; data: string }
 export function PhotoUpload({ label, photos, disabled, onChange, onError }: { label: string; photos: UploadedPhoto[]; disabled: boolean; onChange: (photos: UploadedPhoto[]) => void; onError: (error: string) => void }) {
@@ -9,7 +10,7 @@ export function PhotoUpload({ label, photos, disabled, onChange, onError }: { la
     <input ref={input} className="hidden" type="file" aria-label={label} accept="image/*" multiple disabled={disabled} onChange={async (event) => {
       const files = Array.from(event.target.files ?? []); event.target.value = "";
       if (photos.length + files.length > 4) { onError("Choose up to 4 photos per group."); return; }
-      if (files.some((file) => !file.type.startsWith("image/") || file.size === 0 || file.size > 20 * 1024 * 1024)) { onError("Choose photos up to 20 MB each."); return; }
+      if (files.some((file) => !isSupportedPhoto(file))) { onError("Choose JPG, PNG, WebP or AVIF photos up to 8 MB each."); return; }
       try {
         // Re-encode every format the browser can display (AVIF, WebP, PNG…) as JPEG so analysis always receives a supported image.
         const added = await Promise.all(files.map((file) => new Promise<UploadedPhoto>((resolve, reject) => {
