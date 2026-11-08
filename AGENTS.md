@@ -30,6 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Room studio
+- Normalize browser-decoded furniture and diagram uploads to JPEG before vision analysis; this supports AVIF without changing server input formats.
 - Analyze room photos server-side into image-normalized floor/footprint estimates; project obstacles with the same cover crop and camera as rendering, recomputing on alignment changes and rejecting add/move/rotate overlaps. Keep unresolved detections placement-blocking and reset analysis on photo replacement.
 - Use photo view classification for overhead orientation and floor-contact horizon hints when room edges are hidden; these are manual-scale suggestions, not recovered room boundaries.
 - Pan photo alignment with a normalized camera view offset shared by the whole scene; this moves grid and furniture together without changing room coordinates or fit rules.

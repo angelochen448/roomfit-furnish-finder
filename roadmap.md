@@ -1,3 +1,6 @@
+# AVIF sofa upload
+- [x] Verified the supplied AVIF sofa uploads and matches as a gray left-chaise sectional without errors; missing measurements remain blank. All 28 upload/measurement tests passed.
+
 # Room-photo warning fixes
 - [x] Reapply alignment on every completed analysis without resetting it on detection review; identify unresolved items and offer alignment restoration.
 - [x] Reproduced three unresolved overhead areas after Reset view; verified Restore floor alignment and reanalysis both clear the pause, followed by successful bookshelf placement. All 14 room-photo tests passed.
