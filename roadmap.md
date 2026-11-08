@@ -1,5 +1,5 @@
 # AVIF sofa upload
-- [ ] Verify the supplied AVIF sofa uploads and matches after browser-side JPEG conversion.
+- [x] Verified the supplied AVIF sofa uploads and matches as a gray left-chaise sectional without errors; missing measurements remain blank. All 28 upload/measurement tests passed.
 
 # Room-photo warning fixes
 - [x] Reapply alignment on every completed analysis without resetting it on detection review; identify unresolved items and offer alignment restoration.
