@@ -6,13 +6,24 @@ export interface UploadedPhoto { name: string; data: string }
 export function PhotoUpload({ label, photos, disabled, onChange, onError }: { label: string; photos: UploadedPhoto[]; disabled: boolean; onChange: (photos: UploadedPhoto[]) => void; onError: (error: string) => void }) {
   const input = useRef<HTMLInputElement>(null);
   return <div className="space-y-2">
-    <input ref={input} className="hidden" type="file" aria-label={label} accept="image/jpeg,image/png,image/webp" multiple disabled={disabled} onChange={async (event) => {
+    <input ref={input} className="hidden" type="file" aria-label={label} accept="image/*" multiple disabled={disabled} onChange={async (event) => {
       const files = Array.from(event.target.files ?? []); event.target.value = "";
       if (photos.length + files.length > 4) { onError("Choose up to 4 photos per group."); return; }
-      if (files.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size === 0 || file.size > 8 * 1024 * 1024)) { onError("Choose JPG, PNG or WebP photos up to 8 MB each."); return; }
+      if (files.some((file) => !file.type.startsWith("image/") || file.size === 0 || file.size > 20 * 1024 * 1024)) { onError("Choose photos up to 20 MB each."); return; }
       try {
+        // Re-encode every format the browser can display (AVIF, WebP, PNG…) as JPEG so analysis always receives a supported image.
         const added = await Promise.all(files.map((file) => new Promise<UploadedPhoto>((resolve, reject) => {
-          const reader = new FileReader(); reader.onload = () => typeof reader.result === "string" ? resolve({ name: file.name, data: reader.result }) : reject(new Error("Photo could not be opened.")); reader.onerror = () => reject(new Error("Photo could not be opened.")); reader.readAsDataURL(file);
+          const url = URL.createObjectURL(file); const image = new Image();
+          image.onload = () => {
+            const scale = Math.min(1, 2000 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement("canvas"); canvas.width = Math.round(image.naturalWidth * scale); canvas.height = Math.round(image.naturalHeight * scale);
+            const context = canvas.getContext("2d"); URL.revokeObjectURL(url);
+            if (!context || !canvas.width) { reject(new Error(`${file.name} could not be opened.`)); return; }
+            context.fillStyle = "#ffffff"; context.fillRect(0, 0, canvas.width, canvas.height); context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve({ name: file.name, data: canvas.toDataURL("image/jpeg", 0.9) });
+          };
+          image.onerror = () => { URL.revokeObjectURL(url); reject(new Error(`${file.name} could not be opened in this browser. Try a JPG or PNG.`)); };
+          image.src = url;
         })));
         onChange([...photos, ...added]);
       } catch (e) { onError(e instanceof Error ? e.message : "Photo could not be opened."); }
